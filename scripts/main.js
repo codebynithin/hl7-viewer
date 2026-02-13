@@ -539,19 +539,19 @@ const COMP_DEFS = {
 const ta = document.getElementById("hl7input");
 const lineHighlight = document.getElementById("lineHighlight");
 const lineNumbersEl = document.getElementById("lineNumbers");
+let currentLineIdx = -1;
+let debounceTimer = null;
 
 // Responsive values
 function getResponsiveValues() {
   const isMobile = window.innerWidth < 640; // sm breakpoint
+
   return {
-    LINE_H: isMobile ? 17 : 20.4, // smaller line height on mobile
+    LINE_H: isMobile ? 17 : 20, // smaller line height on mobile
     PADDING_TOP: isMobile ? 8 : 14,
     LINE_NUM_WIDTH: isMobile ? 28 : 38,
   };
 }
-
-let currentLineIdx = -1;
-let debounceTimer = null;
 
 // ── Event Listeners ──────────────────────────────────────
 
@@ -622,10 +622,14 @@ function syncScroll() {
 }
 
 function updateLineNumbers(lines, activeIdx) {
+  const { LINE_H } = getResponsiveValues();
+  const isMobile = window.innerWidth < 640;
+  const fontSize = isMobile ? "10px" : "10px";
+
   lineNumbersEl.innerHTML = lines
     .map(
       (_, i) =>
-        `<span class="block text-right pr-2 text-[10px] ${i === activeIdx ? "text-custom-accent" : "text-custom-text-dim"} leading-[1.7] h-[20.4px]">${i + 1}</span>`,
+        `<span class="block text-right pr-2 text-[${fontSize}] ${i === activeIdx ? "text-custom-accent" : "text-custom-text-dim"} leading-[1.7]" style="height: ${LINE_H}px">${i + 1}</span>`,
     )
     .join("");
   lineNumbersEl.scrollTop = ta.scrollTop;

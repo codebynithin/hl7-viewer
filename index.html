@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HL7 Viewer</title>
+    <link rel="icon" type="image/png" href="./favicon.png" />
     <link
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap"
       rel="stylesheet"
@@ -18,7 +19,7 @@
               "custom-surface": "#111418",
               "custom-surface2": "#181c22",
               "custom-border": "#1e2530",
-              "custom-accent": "#00e5a0",
+              "custom-accent": "#1eb8e0",
               "custom-accent2": "#0096ff",
               "custom-accent3": "#ff6b35",
               "custom-text": "#c8d4e0",
@@ -74,13 +75,13 @@
           class="py-2 sm:py-[9px] px-3 sm:px-4 bg-custom-surface border-b border-custom-border text-[9px] sm:text-[10px] font-medium tracking-[1.2px] sm:tracking-[1.5px] text-custom-text-dim uppercase flex-shrink-0 flex items-center gap-1.5 sm:gap-2"
         >
           <span
-            class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-custom-accent shadow-[0_0_6px_#00e5a0]"
+            class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-custom-accent shadow-[0_0_6px_#1eb8e0]"
           ></span>
           <span class="hidden sm:inline">MESSAGE EDITOR</span>
           <span class="sm:hidden">EDITOR</span>
         </div>
         <div
-          class="py-1.5 sm:py-[7px] px-3 sm:px-4 bg-[rgba(0,229,160,0.05)] border-b border-[rgba(0,229,160,0.1)] text-custom-text-dim text-[9px] sm:text-[10px] flex-shrink-0 hidden sm:flex items-center gap-1.5"
+          class="py-1.5 sm:py-[7px] px-3 sm:px-4 bg-[rgba(30,184,224,0.05)] border-b border-[rgba(30,184,224,0.1)] text-custom-text-dim text-[9px] sm:text-[10px] flex-shrink-0 hidden sm:flex items-center gap-1.5"
           id="clickHint"
         >
           ↖ <span class="text-custom-accent">Click any line</span> to inspect
@@ -95,14 +96,14 @@
             class="absolute left-[28px] sm:left-[38px] top-0 right-0 bottom-0 bg-custom-bg z-0"
           ></div>
           <div
-            class="absolute left-[28px] sm:left-[38px] right-0 pointer-events-none bg-[rgba(0,229,160,0.13)] border-l-2 sm:border-l-[3px] border-custom-accent transition-all duration-75 ease-out hidden"
+            class="absolute left-[28px] sm:left-[38px] right-0 pointer-events-none bg-[rgba(30,184,224,0.3)] border-l-2 sm:border-l-[3px] border-custom-accent transition-all duration-75 ease-out hidden"
             id="lineHighlight"
           ></div>
           <textarea
             id="hl7input"
             wrap="off"
             placeholder="Paste or type your HL7 message here...&#10;&#10;MSH|^~\&|SendApp|SendFac|RecApp|RecFac|20230915120000||ADT^A01|MSG001|P|2.5&#10;PID|1||123456^^^Hospital^MR||Doe^John^A||19800101|M&#10;PV1|1|I|ICU^101^A&#10;&#10;Click a line to inspect its fields.&#10;Edits are reflected instantly."
-            class="flex-1 bg-transparent text-custom-text font-mono text-[10px] sm:text-xs leading-[1.7] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 border-none resize-none outline-none overflow-x-auto overflow-y-auto whitespace-pre caret-custom-accent relative z-[1] scrollbar-thin placeholder:text-custom-text-dim placeholder:text-[9px] sm:placeholder:text-[11px]"
+            class="flex-1 bg-transparent text-custom-text font-mono text-[10px] sm:text-sm leading-[1.7] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 border-none resize-none outline-none overflow-x-auto overflow-y-auto whitespace-pre caret-custom-accent relative z-[1] scrollbar-thin placeholder:text-custom-text-dim placeholder:text-[9px] sm:placeholder:text-[11px]"
           ></textarea>
         </div>
         <div
