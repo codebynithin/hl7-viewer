@@ -535,7 +535,6 @@ const COMP_DEFS = {
     "Address Type",
   ],
 };
-
 const ta = document.getElementById("hl7input");
 const lineHighlight = document.getElementById("lineHighlight");
 const lineNumbersEl = document.getElementById("lineNumbers");
@@ -786,3 +785,6 @@ function clearAll() {
 
 // Init line numbers on load
 updateLineNumbers([""], -1);
+
+// Set copyright year
+document.getElementById("currentYear").textContent = new Date().getFullYear();
