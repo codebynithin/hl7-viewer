@@ -720,57 +720,142 @@ function renderDetails(line, lineIdx) {
         lineIdx + 1
       }</div>
     </div>
-    <table class="w-full border-collapse">
+    <div class="p-4">
   `;
 
   fields.forEach((field, fi) => {
     const fieldName = def.fields[fi] || `Field ${fi + 1}`;
     const fieldNum = `${segName}-${fi + 1}`;
     const isEmpty = field === undefined || field === "";
-    let valueHtml;
 
-    if (isEmpty) {
-      valueHtml = `<span class="text-[11px] text-custom-border italic text-[10px]">—</span>`;
-    } else if (field.includes("^")) {
+    if (field.includes("^")) {
+      // Handle composite fields
       const comps = field.split("^");
       const compNames = COMP_DEFS[fieldNum] || [];
 
-      valueHtml =
-        `<div class="flex flex-col gap-1">` +
-        comps
-          .map(
-            (c, ci) => `
-          <div class="flex gap-1.5 items-start">
-            <span class="text-[9px] text-custom-text-dim min-w-[14px] pt-[1px]">${
-              ci + 1
-            }</span>
-            <span class="text-[11px] text-custom-text-bright">${
-              escHtml(c) || '<span class="text-custom-border">—</span>'
-            }</span>
-            ${
-              compNames[ci]
-                ? `<span class="text-[9px] text-custom-text-dim ml-1 mt-0.5">${compNames[ci]}</span>`
-                : ""
-            }
-          </div>`
-          )
-          .join("") +
-        `</div>`;
-    } else {
-      valueHtml = `<span class="text-[11px] text-custom-text-bright break-all leading-[1.5]">${escHtml(
-        field
-      )}</span>`;
-    }
+      html += `
+        <div class="mb-4 pb-4 border-b border-custom-border">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-[9px] text-custom-text-dim">${fieldNum}</span>
+            <span class="text-[10px] text-custom-accent2 font-medium">${fieldName}</span>
+          </div>
+          <div class="flex flex-col gap-2 ml-4">
+      `;
 
-    html += `<tr class="border-b border-custom-border transition-colors duration-100 hover:bg-[rgba(0,229,160,0.08)]">
-      <td class="py-2 px-3.5 align-top text-[9px] text-custom-text-dim w-[42px] text-right pr-3 whitespace-nowrap">${fieldNum}</td>
-      <td class="py-2 px-3.5 align-top text-[10px] text-custom-accent2 w-[185px] font-medium leading-[1.4]">${fieldName}</td>
-      <td class="py-2 px-3.5 align-top">${valueHtml}</td>
-    </tr>`;
+      comps.forEach((c, ci) => {
+        const compLabel = compNames[ci] || `Component ${ci + 1}`;
+        const compId = `field-${lineIdx}-${fi}-${ci}`;
+
+        html += `
+          <div class="floating-label-container">
+            <input 
+              type="text" 
+              class="floating-label-input" 
+              id="${compId}"
+              value="${escHtml(c)}"
+              data-line-idx="${lineIdx}"
+              data-field-idx="${fi}"
+              data-comp-idx="${ci}"
+              oninput="updateFieldValue(this)"
+            />
+            <label class="floating-label" for="${compId}">${compLabel}</label>
+          </div>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+    } else {
+      // Handle simple fields
+      const fieldId = `field-${lineIdx}-${fi}`;
+
+      html += `
+        <div class="mb-3">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-[9px] text-custom-text-dim">${fieldNum}</span>
+          </div>
+          <div class="floating-label-container">
+            <input 
+              type="text" 
+              class="floating-label-input ${
+                isEmpty ? "text-custom-border italic" : ""
+              }" 
+              id="${fieldId}"
+              value="${isEmpty ? "" : escHtml(field)}"
+              placeholder="${isEmpty ? "—" : ""}"
+              data-line-idx="${lineIdx}"
+              data-field-idx="${fi}"
+              oninput="updateFieldValue(this)"
+            />
+            <label class="floating-label" for="${fieldId}">${fieldName}</label>
+          </div>
+        </div>
+      `;
+    }
   });
 
-  html += `</table>`;
+  html += `</div>`;
   content.innerHTML = html;
+}
+
+// New function to update field values in the textarea
+function updateFieldValue(input) {
+  const lineIdx = parseInt(input.dataset.lineIdx);
+  const fieldIdx = parseInt(input.dataset.fieldIdx);
+  const compIdx =
+    input.dataset.compIdx !== undefined
+      ? parseInt(input.dataset.compIdx)
+      : null;
+  const newValue = input.value;
+  const lines = getLines();
+  const line = lines[lineIdx];
+  const segName = line.substring(0, 3);
+  let fields;
+
+  if (segName === "MSH") {
+    const sep = line[3] || "|";
+    const rest = line.substring(4).split(sep);
+    fields = [sep, ...rest];
+  } else {
+    fields = line.split("|").slice(1);
+  }
+
+  // Update the field value
+  if (compIdx !== null) {
+    // Update component in composite field
+    const comps = fields[fieldIdx].split("^");
+
+    comps[compIdx] = newValue;
+    fields[fieldIdx] = comps.join("^");
+  } else {
+    // Update simple field
+    fields[fieldIdx] = newValue;
+  }
+
+  // Rebuild the line
+  let newLine;
+  if (segName === "MSH") {
+    const sep = fields[0];
+
+    newLine = "MSH" + sep + fields.slice(1).join(sep);
+  } else {
+    newLine = segName + "|" + fields.join("|");
+  }
+
+  // Update the textarea
+  lines[lineIdx] = newLine;
+
+  const cursorPos = ta.selectionStart;
+
+  ta.value = lines.join("\n");
+
+  // Restore cursor position (approximately)
+  ta.setSelectionRange(cursorPos, cursorPos);
+
+  // Update line numbers
+  updateLineNumbers(lines, currentLineIdx);
 }
 
 function formatDT(dt) {
@@ -831,3 +916,46 @@ updateLineNumbers([""], -1);
 
 // Set copyright year
 document.getElementById("currentYear").textContent = new Date().getFullYear();
+
+// ── Theme Toggle ─────────────────────────────────────────
+
+function toggleTheme() {
+  const body = document.body;
+  const moonIcon = document.getElementById("moonIcon");
+  const sunIcon = document.getElementById("sunIcon");
+
+  body.classList.toggle("light-mode");
+
+  const isLightMode = body.classList.contains("light-mode");
+
+  // Toggle icon visibility
+  if (isLightMode) {
+    moonIcon.classList.add("hidden");
+    sunIcon.classList.remove("hidden");
+  } else {
+    moonIcon.classList.remove("hidden");
+    sunIcon.classList.add("hidden");
+  }
+
+  // Save preference to localStorage
+  localStorage.setItem("theme", isLightMode ? "light" : "dark");
+}
+
+// Initialize theme on page load
+function initTheme() {
+  const savedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const moonIcon = document.getElementById("moonIcon");
+  const sunIcon = document.getElementById("sunIcon");
+  // Use saved preference, or fall back to system preference
+  const isDark = savedTheme ? savedTheme === "dark" : prefersDark;
+
+  if (!isDark) {
+    document.body.classList.add("light-mode");
+    moonIcon.classList.add("hidden");
+    sunIcon.classList.remove("hidden");
+  }
+}
+
+// Initialize theme when DOM is ready
+initTheme();
