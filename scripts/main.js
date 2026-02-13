@@ -584,18 +584,23 @@ function getCursorLineIndex() {
   const val = ta.value;
   const pos = ta.selectionStart;
   const before = val.substring(0, pos);
+
   return before.split(/\r\n|\r|\n/).length - 1;
 }
 
 function onCursorMove() {
   const lines = getLines();
   const idx = getCursorLineIndex();
+
   if (idx === currentLineIdx) {
     // Still same line but content may have changed — re-render details
     renderDetails(lines[idx], idx);
+
     return;
   }
+
   currentLineIdx = idx;
+
   updateHighlight(idx, lines.length);
   updateLineNumbers(lines, idx);
   renderDetails(lines[idx], idx);
@@ -605,6 +610,7 @@ function updateHighlight(idx, totalLines) {
   const { LINE_H, PADDING_TOP } = getResponsiveValues();
   const scrollTop = ta.scrollTop;
   const top = PADDING_TOP + idx * LINE_H - scrollTop;
+
   lineHighlight.style.display = "block";
   lineHighlight.style.top = top + "px";
   lineHighlight.style.height = LINE_H + "px";
@@ -612,10 +618,13 @@ function updateHighlight(idx, totalLines) {
 
 function syncScroll() {
   const { LINE_H, PADDING_TOP } = getResponsiveValues();
+
   lineNumbersEl.scrollTop = ta.scrollTop;
+
   if (currentLineIdx >= 0) {
     const scrollTop = ta.scrollTop;
     const top = PADDING_TOP + currentLineIdx * LINE_H - scrollTop;
+
     lineHighlight.style.top = top + "px";
   }
 }
@@ -628,7 +637,9 @@ function updateLineNumbers(lines, activeIdx) {
   lineNumbersEl.innerHTML = lines
     .map(
       (_, i) =>
-        `<span class="block text-right pr-2 text-[${fontSize}] ${i === activeIdx ? "text-custom-accent" : "text-custom-text-dim"} leading-[1.7]" style="height: ${LINE_H}px">${i + 1}</span>`,
+        `<span class="block text-right pr-2 text-[${fontSize}] ${
+          i === activeIdx ? "text-custom-accent" : "text-custom-text-dim"
+        } leading-[1.7]" style="height: ${LINE_H}px">${i + 1}</span>`
     )
     .join("");
   lineNumbersEl.scrollTop = ta.scrollTop;
@@ -638,17 +649,19 @@ function refreshMeta() {
   const lines = getLines().filter((l) => l.trim());
   const validSegs = lines.filter((l) => /^[A-Z]{2}[A-Z0-9]\|/.test(l));
   const count = validSegs.length;
-
   // Error check: first non-empty line should be MSH
   const firstLine = lines[0] || "";
+
   document.getElementById("errorBar").style.display =
     count > 0 && !firstLine.startsWith("MSH") ? "block" : "none";
 
   // Update header info from MSH
   const mshLine = lines.find((l) => l.startsWith("MSH|"));
+
   if (mshLine) {
     const fields = mshLine.split("|");
     const parts = [];
+
     if (fields[8]) parts.push(`Type: <span>${escHtml(fields[8])}</span>`);
     if (fields[11]) parts.push(`v<span>${escHtml(fields[11])}</span>`);
     if (fields[6]) parts.push(`<span>${formatDT(fields[6])}</span>`);
@@ -656,27 +669,36 @@ function refreshMeta() {
 
   // Update line numbers without changing active
   const allLines = getLines();
+
   updateLineNumbers(allLines, currentLineIdx);
 }
 
 function renderDetails(line, lineIdx) {
   const content = document.getElementById("fieldsContent");
+
   if (!line || !line.trim()) {
     content.innerHTML =
       '<div class="flex flex-col items-center justify-center gap-2.5 text-custom-text-dim text-[11px] leading-8 text-center py-10 px-10 h-full"><div class="text-[40px] opacity-20">◈</div>This line is empty.<br>Click a segment line to inspect it.</div>';
+
     return;
   }
 
   const segName = line.substring(0, 3);
+
   if (!/^[A-Z]{2}[A-Z0-9]$/.test(segName) || line[3] !== "|") {
-    content.innerHTML = `<div class="flex flex-col items-center justify-center gap-2.5 text-custom-text-dim text-[11px] leading-8 text-center py-10 px-10 h-full"><div class="text-[40px] opacity-20">◈</div>Line ${lineIdx + 1} is not a valid HL7 segment.<br>Segments start with a 3-char code followed by <code class="text-custom-accent">|</code></div>`;
+    content.innerHTML = `<div class="flex flex-col items-center justify-center gap-2.5 text-custom-text-dim text-[11px] leading-8 text-center py-10 px-10 h-full"><div class="text-[40px] opacity-20">◈</div>Line ${
+      lineIdx + 1
+    } is not a valid HL7 segment.<br>Segments start with a 3-char code followed by <code class="text-custom-accent">|</code></div>`;
+
     return;
   }
 
   let fields;
+
   if (segName === "MSH") {
     const sep = line[3] || "|";
     const rest = line.substring(4).split(sep);
+
     fields = [sep, ...rest];
   } else {
     fields = line.split("|").slice(1);
@@ -686,14 +708,17 @@ function renderDetails(line, lineIdx) {
     name: "Custom / Unknown Segment",
     fields: [],
   };
-
   let html = `
     <div class="py-[13px] px-5 border-b border-custom-border bg-custom-surface flex items-start justify-between">
       <div>
-        <div class="font-syne text-[21px] font-extrabold text-custom-text-bright"><span class="text-custom-accent">${escHtml(segName)}</span></div>
+        <div class="font-syne text-[21px] font-extrabold text-custom-text-bright"><span class="text-custom-accent">${escHtml(
+          segName
+        )}</span></div>
         <div class="text-[11px] text-custom-text-dim mt-0.5">${def.name}</div>
       </div>
-      <div class="text-[10px] text-custom-text-dim py-[3px] px-2 bg-custom-surface2 border border-custom-border rounded-[2px] whitespace-nowrap">Line ${lineIdx + 1}</div>
+      <div class="text-[10px] text-custom-text-dim py-[3px] px-2 bg-custom-surface2 border border-custom-border rounded-[2px] whitespace-nowrap">Line ${
+        lineIdx + 1
+      }</div>
     </div>
     <table class="w-full border-collapse">
   `;
@@ -702,28 +727,39 @@ function renderDetails(line, lineIdx) {
     const fieldName = def.fields[fi] || `Field ${fi + 1}`;
     const fieldNum = `${segName}-${fi + 1}`;
     const isEmpty = field === undefined || field === "";
-
     let valueHtml;
+
     if (isEmpty) {
       valueHtml = `<span class="text-[11px] text-custom-border italic text-[10px]">—</span>`;
     } else if (field.includes("^")) {
       const comps = field.split("^");
       const compNames = COMP_DEFS[fieldNum] || [];
+
       valueHtml =
         `<div class="flex flex-col gap-1">` +
         comps
           .map(
             (c, ci) => `
           <div class="flex gap-1.5 items-start">
-            <span class="text-[9px] text-custom-text-dim min-w-[14px] pt-[1px]">${ci + 1}</span>
-            <span class="text-[11px] text-custom-text-bright">${escHtml(c) || '<span class="text-custom-border">—</span>'}</span>
-            ${compNames[ci] ? `<span class="text-[9px] text-custom-text-dim ml-1 mt-0.5">${compNames[ci]}</span>` : ""}
-          </div>`,
+            <span class="text-[9px] text-custom-text-dim min-w-[14px] pt-[1px]">${
+              ci + 1
+            }</span>
+            <span class="text-[11px] text-custom-text-bright">${
+              escHtml(c) || '<span class="text-custom-border">—</span>'
+            }</span>
+            ${
+              compNames[ci]
+                ? `<span class="text-[9px] text-custom-text-dim ml-1 mt-0.5">${compNames[ci]}</span>`
+                : ""
+            }
+          </div>`
           )
           .join("") +
         `</div>`;
     } else {
-      valueHtml = `<span class="text-[11px] text-custom-text-bright break-all leading-[1.5]">${escHtml(field)}</span>`;
+      valueHtml = `<span class="text-[11px] text-custom-text-bright break-all leading-[1.5]">${escHtml(
+        field
+      )}</span>`;
     }
 
     html += `<tr class="border-b border-custom-border transition-colors duration-100 hover:bg-[rgba(0,229,160,0.08)]">
@@ -740,14 +776,18 @@ function renderDetails(line, lineIdx) {
 function formatDT(dt) {
   if (dt && dt.length >= 8) {
     let s = `${dt.substr(0, 4)}-${dt.substr(4, 2)}-${dt.substr(6, 2)}`;
+
     if (dt.length >= 12) s += ` ${dt.substr(8, 2)}:${dt.substr(10, 2)}`;
+
     return s;
   }
+
   return dt || "";
 }
 
 function escHtml(str) {
   if (!str) return "";
+
   return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -765,9 +805,12 @@ OBX|3|NM|718-7^Hemoglobin^LN||14.2|g/dL|13.5-17.5||||F|||20230915160000
 OBX|4|NM|4544-3^Hematocrit^LN||42.1|%|41.0-53.0||||F|||20230915160000
 NTE|1||Patient fasting prior to collection. Sample quality: Good.
 AL1|1|DA|PENICILLIN^Penicillin^L|SEV|Rash^Hives||19950601`;
+
   ta.focus();
   ta.setSelectionRange(0, 0);
+
   currentLineIdx = -1;
+
   refreshMeta();
   onCursorMove();
 }
