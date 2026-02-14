@@ -1,0 +1,16 @@
+<app-header></app-header>
+
+<div class="w-full flex flex-col lg:flex-row flex-1 overflow-hidden">
+  <div class="w-full lg:w-3/4 h-1/3 lg:h-full">
+    <app-message-editor
+      (lineSelected)="onLineSelected($event)"
+      (messageChanged)="onMessageChanged($event)"></app-message-editor>
+  </div>
+
+  <div class="w-full lg:w-1/4 h-2/3 lg:h-full">
+    <app-segment-detail
+      [lineContent]="selectedLineContent"
+      [lineIndex]="selectedLineIndex"
+      (fieldValueChange)="onFieldValueChange($event)"></app-segment-detail>
+  </div>
+</div>

@@ -1,0 +1,86 @@
+<div class="w-full flex flex-col overflow-hidden lg:flex-1 h-full">
+  <div
+    class="py-2 sm:py-[9px] px-3 sm:px-4 bg-custom-surface border-b border-custom-border text-[9px] sm:text-[10px] font-medium tracking-[1.2px] sm:tracking-[1.5px] text-custom-text-dim uppercase flex-shrink-0 flex items-center gap-1.5 sm:gap-2">
+    <span
+      class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-custom-accent shadow-[0_0_6px_#1eb8e0]"></span>
+    <span class="hidden sm:inline">MESSAGE EDITOR</span>
+    <span class="sm:hidden">EDITOR</span>
+  </div>
+
+  <div
+    class="py-1.5 sm:py-[7px] px-3 sm:px-4 bg-[rgba(30,184,224,0.05)] border-b border-[rgba(30,184,224,0.1)] text-custom-text-dim text-[9px] sm:text-[10px] flex-shrink-0 hidden sm:flex items-center gap-1.5">
+    ↖ <span class="text-custom-accent">Click any line</span> to inspect its
+    fields
+  </div>
+
+  <div class="flex-1 relative overflow-hidden flex">
+    <div
+      id="lineNumbers"
+      class="w-[28px] sm:w-[38px] bg-custom-surface border-r border-custom-border py-2 sm:py-3.5 overflow-hidden flex-shrink-0 pointer-events-none">
+      @for (num of lineNumbers; track num; let i = $index) {
+        <span
+          class="block text-right pr-2 text-[10px] leading-[1.7] sm:leading-[2]"
+          [class.text-custom-accent]="i === currentLineIndex"
+          [class.text-custom-text-dim]="i !== currentLineIndex"
+          [style.height.px]="lineHeight">
+          {{ num }}
+        </span>
+      }
+    </div>
+
+    <div
+      class="absolute left-[28px] sm:left-[38px] top-0 right-0 bottom-0 bg-custom-bg z-0"></div>
+
+    <div
+      id="lineHighlight"
+      class="absolute left-[28px] sm:left-[38px] right-0 pointer-events-none bg-[rgba(30,184,224,0.3)] border-l-2 sm:border-l-[3px] border-custom-accent transition-all duration-75 ease-out hidden"></div>
+
+    <textarea
+      id="hl7input"
+      [(ngModel)]="hl7Message"
+      (input)="onMessageInput()"
+      (click)="onTextareaClick($event)"
+      (keyup)="onKeyUp()"
+      (scroll)="onScroll()"
+      wrap="off"
+      placeholder="Paste or type your HL7 message here...&#10;&#10;MSH|^~\&|SendApp|SendFac|RecApp|RecFac|20230915120000||ADT^A01|MSG001|P|2.5&#10;PID|1||123456^^^Hospital^MR||Doe^John^A||19800101|M&#10;PV1|1|I|ICU^101^A&#10;&#10;Click a line to inspect its fields.&#10;Edits are reflected instantly."
+      class="flex-1 bg-transparent text-custom-text font-mono text-[10px] leading-[1.7] sm:leading-[2] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 border-none resize-none outline-none overflow-x-auto overflow-y-auto whitespace-pre caret-custom-accent relative z-[1] scrollbar-thin placeholder:text-custom-text-dim placeholder:text-[9px] sm:placeholder:text-[11px]"></textarea>
+  </div>
+
+  @if (showError) {
+    <div
+      class="py-1 sm:py-1.5 px-3 sm:px-4 bg-[rgba(255,107,53,0.1)] border-t border-[rgba(255,107,53,0.2)] text-custom-accent3 text-[9px] sm:text-[10px] flex-shrink-0">
+      ⚠ First segment should be MSH
+    </div>
+  }
+
+  <div
+    class="py-2 sm:py-[9px] px-2 sm:px-3.5 bg-custom-surface border-t lg:border-t border-custom-border flex gap-1.5 sm:gap-2 flex-shrink-0 items-center flex-wrap sm:flex-nowrap">
+    <button
+      (click)="loadSample()"
+      class="font-mono text-[10px] sm:text-[11px] font-medium py-1 sm:py-1.5 px-2.5 sm:px-3.5 border border-custom-border rounded-[3px] cursor-pointer transition-all duration-150 bg-transparent text-custom-text-dim hover:text-custom-text hover:border-custom-text-dim">
+      Load Sample
+    </button>
+
+    <button
+      (click)="clearAll()"
+      class="font-mono text-[10px] sm:text-[11px] font-medium py-1 sm:py-1.5 px-2.5 sm:px-3.5 border border-custom-border rounded-[3px] cursor-pointer transition-all duration-150 bg-transparent text-custom-text-dim hover:text-custom-text hover:border-custom-text-dim">
+      Clear
+    </button>
+
+    <span
+      class="text-[9px] sm:text-[9.5px] text-custom-text-dim mx-auto lg:mx-0">
+      &copy; {{ currentYear }} HL7 Viewer by
+      <a
+        href="https://codebynithin.com"
+        target="_blank"
+        class="text-custom-accent hover:text-custom-accent3">
+        CodeByNithin
+      </a>
+    </span>
+
+    <span class="hidden lg:inline ml-auto text-[9.5px] text-custom-text-dim">
+      Click any line · Edits update instantly
+    </span>
+  </div>
+</div>

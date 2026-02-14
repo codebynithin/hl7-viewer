@@ -1,3 +1,11 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap');
+
+/* Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Theme Variables */
 :root {
   /* Dark Mode (default) */
@@ -35,6 +43,34 @@ body.light-mode {
   --input-bg: rgba(255, 255, 255, 0.8);
   --input-border: #d1d5db;
   --input-focus-bg: rgba(8, 145, 178, 0.05);
+}
+
+/* Base Styles */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'JetBrains Mono', monospace;
+  height: 100vh;
+  overflow: hidden;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* Font family utilities */
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-syne {
+  font-family: 'Syne', sans-serif;
 }
 
 /* Scrollbar Styling */
@@ -107,11 +143,6 @@ body.light-mode {
   color: var(--color-accent);
 }
 
-/* Smooth theme transition */
-body {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
 /* Date Preview Label */
 .date-preview {
   position: absolute;
@@ -126,5 +157,5 @@ body {
   pointer-events: none;
   white-space: nowrap;
   opacity: 0.9;
-  font-family: "JetBrains Mono", monospace;
+  font-family: 'JetBrains Mono', monospace;
 }
