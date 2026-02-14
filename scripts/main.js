@@ -546,7 +546,7 @@ function getResponsiveValues() {
   const isMobile = window.innerWidth < 640; // sm breakpoint
 
   return {
-    LINE_H: isMobile ? 27 : 24, // Updated to match text-base (16px * 1.7) and text-sm (14px * 1.7)
+    LINE_H: isMobile ? 17 : 20, // smaller line height on mobile
     PADDING_TOP: isMobile ? 8 : 14,
     LINE_NUM_WIDTH: isMobile ? 28 : 38,
   };
