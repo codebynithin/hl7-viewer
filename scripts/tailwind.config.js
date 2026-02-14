@@ -1,12 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+tailwind.config = {
   theme: {
     extend: {
-      fontFamily: {
-        mono: ['"JetBrains Mono"', "monospace"],
-        syne: ["Syne", "sans-serif"],
-      },
       colors: {
         "custom-bg": "var(--color-bg)",
         "custom-surface": "var(--color-surface)",
@@ -19,7 +13,10 @@ export default {
         "custom-text-dim": "var(--color-text-dim)",
         "custom-text-bright": "var(--color-text-bright)",
       },
+      fontFamily: {
+        mono: ["JetBrains Mono", "monospace"],
+        syne: ["Syne", "sans-serif"],
+      },
     },
   },
-  plugins: [],
 };
