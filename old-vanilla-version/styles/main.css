@@ -1,0 +1,132 @@
+/* Theme Variables */
+:root {
+  /* Dark Mode (default) */
+  --color-bg: #0a0d11;
+  --color-surface: #111418;
+  --color-surface2: #181c22;
+  --color-border: #1e2530;
+  --color-accent: #1eb8e0;
+  --color-accent2: #0096ff;
+  --color-accent3: #ff6b35;
+  --color-text: #c8d4e0;
+  --color-text-dim: #5a6a7a;
+  --color-text-bright: #eaf2ff;
+  --scrollbar-thumb: #1e2530;
+  --scrollbar-thumb-hover: #5a6a7a;
+  --input-bg: rgba(24, 28, 34, 0.5);
+  --input-border: #1e2530;
+  --input-focus-bg: rgba(30, 184, 224, 0.05);
+}
+
+/* Light Mode */
+body.light-mode {
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface2: #f0f2f5;
+  --color-border: #d1d5db;
+  --color-accent: #0891b2;
+  --color-accent2: #0284c7;
+  --color-accent3: #f97316;
+  --color-text: #374151;
+  --color-text-dim: #9ca3af;
+  --color-text-bright: #111827;
+  --scrollbar-thumb: #d1d5db;
+  --scrollbar-thumb-hover: #9ca3af;
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-border: #d1d5db;
+  --input-focus-bg: rgba(8, 145, 178, 0.05);
+}
+
+/* Scrollbar Styling */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Floating Label Styles */
+.floating-label-container {
+  position: relative;
+  margin-top: 8px;
+}
+
+.floating-label-input {
+  width: 100%;
+  padding: 12px 8px 4px 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  color: var(--color-text-bright);
+  font-size: 11px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.floating-label-input::placeholder {
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.floating-label-input:focus {
+  border-color: var(--color-accent);
+  background: var(--input-focus-bg);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.floating-label-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.floating-label {
+  position: absolute;
+  left: 8px;
+  top: 2px;
+  font-size: 8px;
+  color: var(--color-accent2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.floating-label-input:focus + .floating-label {
+  color: var(--color-accent);
+}
+
+/* Smooth theme transition */
+body {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Date Preview Label */
+.date-preview {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  color: var(--color-accent);
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0.9;
+  font-family: "JetBrains Mono", monospace;
+}

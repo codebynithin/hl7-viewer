@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Theme Variables */
 :root {
   /* Dark Mode (default) */
@@ -109,7 +113,9 @@ body.light-mode {
 
 /* Smooth theme transition */
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* Date Preview Label */
