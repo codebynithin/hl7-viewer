@@ -745,12 +745,14 @@ function renderDetails(line, lineIdx) {
       comps.forEach((c, ci) => {
         const compLabel = compNames[ci] || `Component ${ci + 1}`;
         const compId = `field-${lineIdx}-${fi}-${ci}`;
+        const isDate = isDateField(compLabel);
+        const datePreview = isDate && c ? formatHL7Date(c) : "";
 
         html += `
-          <div class="floating-label-container">
-            <input 
-              type="text" 
-              class="floating-label-input" 
+          <div class="floating-label-container relative">
+            <input
+              type="text"
+              class="floating-label-input ${isDate ? "pr-2" : ""}"
               id="${compId}"
               value="${escHtml(c)}"
               data-line-idx="${lineIdx}"
@@ -759,6 +761,11 @@ function renderDetails(line, lineIdx) {
               oninput="updateFieldValue(this)"
             />
             <label class="floating-label" for="${compId}">${compLabel}</label>
+            ${
+              datePreview
+                ? `<span class="date-preview">${datePreview}</span>`
+                : ""
+            }
           </div>
         `;
       });
@@ -770,18 +777,21 @@ function renderDetails(line, lineIdx) {
     } else {
       // Handle simple fields
       const fieldId = `field-${lineIdx}-${fi}`;
+      const isDate = isDateField(fieldName);
+      const datePreview =
+        isDate && !isEmpty && field ? formatHL7Date(field) : "";
 
       html += `
         <div class="mb-3">
           <div class="flex items-center gap-2 mb-1">
             <span class="text-[9px] text-custom-text-dim">${fieldNum}</span>
           </div>
-          <div class="floating-label-container">
-            <input 
-              type="text" 
+          <div class="floating-label-container relative">
+            <input
+              type="text"
               class="floating-label-input ${
-                isEmpty ? "text-custom-border italic" : ""
-              }" 
+                isEmpty ? "text-custom-border italic" : isDate ? "pr-2" : ""
+              }"
               id="${fieldId}"
               value="${isEmpty ? "" : escHtml(field)}"
               placeholder="${isEmpty ? "—" : ""}"
@@ -790,6 +800,11 @@ function renderDetails(line, lineIdx) {
               oninput="updateFieldValue(this)"
             />
             <label class="floating-label" for="${fieldId}">${fieldName}</label>
+            ${
+              datePreview
+                ? `<span class="date-preview">${datePreview}</span>`
+                : ""
+            }
           </div>
         </div>
       `;
@@ -868,6 +883,49 @@ function formatDT(dt) {
   }
 
   return dt || "";
+}
+
+// Format HL7 date to mm/dd/yyyy hh:mm:ss
+function formatHL7Date(dt) {
+  if (!dt || dt.length < 8) return "";
+
+  // Remove non-digit characters
+  const clean = dt.replace(/\D/g, "");
+
+  if (clean.length < 8) return "";
+
+  const year = clean.substr(0, 4);
+  const month = clean.substr(4, 2);
+  const day = clean.substr(6, 2);
+  let formatted = `${month}/${day}/${year}`;
+
+  // Add time if available
+  if (clean.length >= 12) {
+    const hour = clean.substr(8, 2);
+    const minute = clean.substr(10, 2);
+    const second = clean.length >= 14 ? clean.substr(12, 2) : "00";
+
+    formatted += ` ${hour}:${minute}:${second}`;
+  } else if (clean.length >= 10) {
+    const hour = clean.substr(8, 2);
+    const minute = "00";
+    const second = "00";
+
+    formatted += ` ${hour}:${minute}:${second}`;
+  }
+
+  return formatted;
+}
+
+// Check if field name indicates a date/time field
+function isDateField(fieldName) {
+  const lowerName = fieldName.toLowerCase();
+
+  return (
+    lowerName.includes("date") ||
+    lowerName.includes("time") ||
+    lowerName.includes("dt")
+  );
 }
 
 function escHtml(str) {
