@@ -3,13 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <title>HL7 Viewer</title>
-
     <base href="/" />
-
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self';
@@ -18,18 +15,20 @@
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data:;
         connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com;" />
-
     <link rel="icon" type="image/png" href="favicon.png" />
-
     <!-- Google tag (gtag.js) -->
     <script
-      async
+      async=""
       src="https://www.googletagmanager.com/gtag/js?id=G-NH1YV5XJ5J"></script>
     <script src="assets/gtag.js"></script>
+    <link rel="manifest" href="manifest.webmanifest" />
   </head>
 
   <body
     class="bg-custom-bg text-custom-text font-mono h-screen flex flex-col overflow-hidden">
     <app-root></app-root>
+    <noscript
+      >Please enable JavaScript to continue using this application.</noscript
+    >
   </body>
 </html>
