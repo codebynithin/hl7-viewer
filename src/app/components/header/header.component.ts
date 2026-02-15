@@ -1,6 +1,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
+import packageJson from '../../../../package.json';
 
 @Component({
   selector: 'app-header',
@@ -10,6 +11,7 @@ import { ThemeService } from '../../services/theme.service';
 })
 export class HeaderComponent {
   public isDarkMode$ = this.themeService.isDarkMode$;
+  public readonly appVersion = `v${packageJson.version}`;
 
   @Output() copyClicked = new EventEmitter<void>();
   @Output() clearClicked = new EventEmitter<void>();
