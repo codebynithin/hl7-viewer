@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "hl7-viewer-ng": {
+    "hl7-viewer": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -20,7 +20,10 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/hl7-viewer-ng",
+            "outputPath": {
+              "base": "dist/hl7-viewer",
+              "browser": ""
+            },
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -57,10 +60,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "hl7-viewer-ng:build:production"
+              "buildTarget": "hl7-viewer:build:production"
             },
             "development": {
-              "buildTarget": "hl7-viewer-ng:build:development"
+              "buildTarget": "hl7-viewer:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -68,7 +71,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "hl7-viewer-ng:build"
+            "buildTarget": "hl7-viewer:build"
           }
         },
         "test": {
