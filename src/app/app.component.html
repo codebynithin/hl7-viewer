@@ -1,4 +1,6 @@
-<app-header></app-header>
+<app-header
+  (copyClicked)="handleCopy()"
+  (clearClicked)="handleClear()"></app-header>
 
 <div class="w-full flex flex-col lg:flex-row flex-1 overflow-hidden">
   <div class="w-full lg:w-3/4 h-1/3 lg:h-full">
@@ -14,3 +16,5 @@
       (fieldValueChange)="onFieldValueChange($event)"></app-segment-detail>
   </div>
 </div>
+
+<app-footer></app-footer>

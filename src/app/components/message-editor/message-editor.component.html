@@ -9,8 +9,10 @@
 
   <div
     class="py-1.5 sm:py-[7px] px-3 sm:px-4 bg-[rgba(30,184,224,0.05)] border-b border-[rgba(30,184,224,0.1)] text-custom-text-dim text-[9px] sm:text-[10px] flex-shrink-0 hidden sm:flex items-center gap-1.5">
-    ↖ <span class="text-custom-accent">Click any line</span> to inspect its
-    fields
+    <span>
+      <span class="text-custom-accent">Click any line</span> to inspect its
+      fields
+    </span>
   </div>
 
   <div class="flex-1 relative overflow-hidden flex">
@@ -53,34 +55,4 @@
       ⚠ First segment should be MSH
     </div>
   }
-
-  <div
-    class="py-2 sm:py-[9px] px-2 sm:px-3.5 bg-custom-surface border-t lg:border-t border-custom-border flex gap-1.5 sm:gap-2 flex-shrink-0 items-center flex-wrap sm:flex-nowrap">
-    <button
-      (click)="loadSample()"
-      class="font-mono text-[10px] sm:text-[11px] font-medium py-1 sm:py-1.5 px-2.5 sm:px-3.5 border border-custom-border rounded-[3px] cursor-pointer transition-all duration-150 bg-transparent text-custom-text-dim hover:text-custom-text hover:border-custom-text-dim">
-      Load Sample
-    </button>
-
-    <button
-      (click)="clearAll()"
-      class="font-mono text-[10px] sm:text-[11px] font-medium py-1 sm:py-1.5 px-2.5 sm:px-3.5 border border-custom-border rounded-[3px] cursor-pointer transition-all duration-150 bg-transparent text-custom-text-dim hover:text-custom-text hover:border-custom-text-dim">
-      Clear
-    </button>
-
-    <span
-      class="text-[9px] sm:text-[9.5px] text-custom-text-dim mx-auto lg:mx-0">
-      &copy; {{ currentYear }} HL7 Viewer by
-      <a
-        href="https://codebynithin.com"
-        target="_blank"
-        class="text-custom-accent hover:text-custom-accent3">
-        CodeByNithin
-      </a>
-    </span>
-
-    <span class="hidden lg:inline ml-auto text-[9.5px] text-custom-text-dim">
-      Click any line · Edits update instantly
-    </span>
-  </div>
 </div>

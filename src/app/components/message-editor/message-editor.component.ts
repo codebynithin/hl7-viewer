@@ -117,6 +117,12 @@ AL1|1|DA|PENICILLIN^Penicillin^L|SEV|Rash^Hives||19950601`;
     this.lineSelected.emit({ lineContent: '', lineIndex: -1 });
   }
 
+  public copyToClipboard(): void {
+    if (!this.hl7Message) return;
+
+    navigator.clipboard.writeText(this.hl7Message);
+  }
+
   private checkMobile(): void {
     this.isMobile = window.innerWidth < 640;
   }

@@ -1,16 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 
 import { HeaderComponent } from './components/header/header.component';
 import { MessageEditorComponent } from './components/message-editor/message-editor.component';
 import { SegmentDetailComponent } from './components/segment-detail/segment-detail.component';
+import { FooterComponent } from './components/footer/footer.component';
 
 @Component({
   selector: 'app-root',
-  imports: [HeaderComponent, MessageEditorComponent, SegmentDetailComponent],
+  imports: [
+    HeaderComponent,
+    MessageEditorComponent,
+    SegmentDetailComponent,
+    FooterComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
+  @ViewChild(MessageEditorComponent) messageEditor!: MessageEditorComponent;
+
   public selectedLineContent = '';
   public selectedLineIndex = -1;
   public hl7Message = '';
@@ -25,6 +33,14 @@ export class AppComponent {
 
   public onMessageChanged(message: string): void {
     this.hl7Message = message;
+  }
+
+  public handleCopy(): void {
+    this.messageEditor.copyToClipboard();
+  }
+
+  public handleClear(): void {
+    this.messageEditor.clearAll();
   }
 
   public onFieldValueChange(event: {
