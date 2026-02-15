@@ -1,8 +1,32 @@
 <footer
-  class="w-full py-2 sm:py-3 px-4 bg-custom-surface border-t border-custom-border text-center flex-shrink-0">
-  <p class="text-[10px] sm:text-[11px] text-custom-text-dim font-medium">
-    &copy; {{ currentYear }} HL7 Viewer maintained by
-    <a href="https://codebynithin.com" target="_blank">Nithin V</a>. All rights
-    reserved.
-  </p>
+  class="w-full py-2 sm:py-3 px-4 bg-custom-surface border-t border-custom-border flex-shrink-0">
+  <div
+    class="flex flex-col sm:flex-row items-center sm:justify-between gap-1 sm:gap-0">
+    <p class="text-[10px] sm:text-[11px] text-custom-text-dim font-medium">
+      &copy; {{ currentYear }} HL7 Viewer maintained by
+      <a
+        href="https://codebynithin.com"
+        target="_blank"
+        class="text-custom-accent hover:underline"
+        >Nithin V</a
+      >. All rights reserved.
+    </p>
+    <a
+      href="mailto:info@codebynithin.com?subject=HL7%20Viewer%20-%20Suggestion&amp;body=Hi%2C%20I%20have%20a%20suggestion%20for%20the%20HL7%20Viewer%3A%0A%0A"
+      target="_blank"
+      class="flex items-center gap-1 text-[10px] sm:text-[11px] text-custom-text-dim hover:text-custom-accent transition-colors duration-150 font-medium group">
+      <svg
+        class="w-3.5 h-3.5 text-custom-text-dim group-hover:text-custom-accent transition-colors"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+      Share your suggestions to info&#64;codebynithin.com
+    </a>
+  </div>
 </footer>
