@@ -1,0 +1,16 @@
+.input-error {
+  border-color: var(--input-border-error) !important;
+  background-color: rgba(255, 107, 53, 0.05) !important;
+  color: var(--input-border-error) !important;
+}
+
+.label-error {
+  color: var(--input-border-error) !important;
+}
+
+.error-message {
+  color: var(--input-border-error);
+  font-size: 9px;
+  margin-top: 4px;
+  display: block;
+}

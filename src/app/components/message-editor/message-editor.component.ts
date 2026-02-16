@@ -1,10 +1,18 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Hl7ParserService } from '../../services/hl7-parser.service';
+
+interface ParsedSegment {
+  segmentName: string;
+  fields: string[];
+  hasInvalidDate: boolean;
+}
 
 @Component({
   selector: 'app-message-editor',
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './message-editor.component.html',
   styleUrl: './message-editor.component.scss',
 })
@@ -16,6 +24,7 @@ export class MessageEditorComponent implements OnInit {
   public isMobile = false;
   public isDragOver = false;
   public currentYear = new Date().getFullYear();
+  public parsedSegments: ParsedSegment[] = [];
   private readonly lineHeightMobile = 17;
   private readonly lineHeightDesktop = 20;
   private readonly paddingTopMobile = 8;
@@ -25,6 +34,8 @@ export class MessageEditorComponent implements OnInit {
     lineIndex: number;
   }>();
   @Output() messageChanged = new EventEmitter<string>();
+
+  constructor(private hl7Parser: Hl7ParserService) {}
 
   ngOnInit(): void {
     this.checkMobile();
@@ -42,6 +53,7 @@ export class MessageEditorComponent implements OnInit {
   public onMessageInput(): void {
     this.updateLineNumbers();
     this.validateMessage();
+    this.parseSegments();
     this.messageChanged.emit(this.hl7Message);
   }
 
@@ -53,13 +65,30 @@ export class MessageEditorComponent implements OnInit {
     this.handleCursorMove();
   }
 
+  public onLineClick(lineIndex: number): void {
+    this.currentLineIndex = lineIndex;
+
+    const lines = this.getLines();
+
+    this.lineSelected.emit({
+      lineContent: lines[lineIndex] || '',
+      lineIndex,
+    });
+    this.updateHighlight();
+  }
+
   public onScroll(): void {
     const textarea = document.getElementById('hl7input') as HTMLTextAreaElement;
+    const display = document.getElementById('hl7display') as HTMLDivElement;
     const lineNumbersEl = document.getElementById('lineNumbers');
     const highlight = document.getElementById('lineHighlight');
 
     if (textarea && lineNumbersEl) {
       lineNumbersEl.scrollTop = textarea.scrollTop;
+    }
+
+    if (textarea && display) {
+      display.style.transform = `translateY(-${textarea.scrollTop}px)`;
     }
 
     if (this.currentLineIndex >= 0 && highlight && textarea) {
@@ -75,6 +104,7 @@ export class MessageEditorComponent implements OnInit {
     this.hl7Message = '';
     this.currentLineIndex = -1;
     this.lineNumbers = [];
+    this.parsedSegments = [];
     this.showError = false;
 
     const highlight = document.getElementById('lineHighlight');
@@ -91,6 +121,13 @@ export class MessageEditorComponent implements OnInit {
     if (!this.hl7Message) return;
 
     navigator.clipboard.writeText(this.hl7Message);
+  }
+
+  public updateMessage(message: string): void {
+    this.hl7Message = message;
+    this.updateLineNumbers();
+    this.validateMessage();
+    this.parseSegments();
   }
 
   public onDragOver(event: DragEvent): void {
@@ -200,6 +237,7 @@ export class MessageEditorComponent implements OnInit {
       this.hl7Message = content;
       this.updateLineNumbers();
       this.validateMessage();
+      this.parseSegments();
       this.currentLineIndex = -1;
       this.messageChanged.emit(this.hl7Message);
       this.lineSelected.emit({ lineContent: '', lineIndex: -1 });
@@ -210,5 +248,63 @@ export class MessageEditorComponent implements OnInit {
       }
     };
     reader.readAsText(file);
+  }
+
+  private parseSegments(): void {
+    const lines = this.getLines();
+
+    this.parsedSegments = lines.map(line => {
+      const parsed = this.hl7Parser.parseSegment(line);
+
+      if (!parsed) {
+        return {
+          segmentName: '',
+          fields: [],
+          hasInvalidDate: false,
+        };
+      }
+
+      const definition = this.hl7Parser.getSegmentDefinition(
+        parsed.segmentName
+      );
+      let hasInvalidDate = false;
+
+      parsed.fields.forEach((field, index) => {
+        const fieldName = definition.fields[index] || '';
+        const isDate = this.hl7Parser.isDateField(fieldName);
+
+        if (isDate && field && !this.hl7Parser.isValidHL7Date(field)) {
+          hasInvalidDate = true;
+        }
+
+        if (field && field.includes('^')) {
+          const components = field.split('^');
+          const fieldNumber = `${parsed.segmentName}-${index + 1}`;
+          const componentNames =
+            this.hl7Parser.getComponentDefinition(fieldNumber);
+
+          components.forEach((comp, compIndex) => {
+            const compName = componentNames[compIndex] || '';
+            const compIsDate = this.hl7Parser.isDateField(compName);
+
+            if (compIsDate && comp && !this.hl7Parser.isValidHL7Date(comp)) {
+              hasInvalidDate = true;
+            }
+          });
+        }
+      });
+
+      return {
+        segmentName: parsed.segmentName,
+        fields: parsed.fields,
+        hasInvalidDate,
+      };
+    });
+  }
+
+  public getSegmentDisplay(index: number): string {
+    const lines = this.getLines();
+
+    return lines[index] || '';
   }
 }

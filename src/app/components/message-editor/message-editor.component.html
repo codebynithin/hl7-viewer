@@ -97,7 +97,31 @@
       (scroll)="onScroll()"
       wrap="off"
       placeholder="Paste or type your HL7 message here...&#10;&#10;MSH|^~\&|SendApp|SendFac|RecApp|RecFac|20230915120000||ADT^A01|MSG001|P|2.5&#10;PID|1||123456^^^Hospital^MR||Doe^John^A||19800101|M&#10;PV1|1|I|ICU^101^A&#10;&#10;Click a line to inspect its fields.&#10;Edits are reflected instantly."
-      class="flex-1 bg-transparent text-custom-text font-mono text-[10px] leading-[1.7] sm:leading-[2] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 border-none resize-none outline-none overflow-x-auto overflow-y-auto whitespace-pre caret-custom-accent relative z-[1] scrollbar-thin placeholder:text-custom-text-dim placeholder:text-[9px] sm:placeholder:text-[11px]"></textarea>
+      [class]="
+        hl7Message
+          ? 'flex-1 bg-transparent text-transparent font-mono text-[10px] leading-[1.7] sm:leading-[2] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 border-none resize-none outline-none overflow-x-auto overflow-y-auto whitespace-pre caret-custom-text relative z-[2] scrollbar-thin placeholder:text-custom-text-dim placeholder:text-[9px] sm:placeholder:text-[11px]'
+          : 'flex-1 bg-transparent text-custom-text font-mono text-[10px] leading-[1.7] sm:leading-[2] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 border-none resize-none outline-none overflow-x-auto overflow-y-auto whitespace-pre caret-custom-accent relative z-[1] scrollbar-thin placeholder:text-custom-text-dim placeholder:text-[9px] sm:placeholder:text-[11px]'
+      "></textarea>
+
+    @if (hl7Message && parsedSegments.length > 0) {
+      <div
+        id="hl7display"
+        class="absolute left-[28px] sm:left-[38px] top-0 right-0 bottom-0 text-custom-text font-mono text-[10px] leading-[1.7] sm:leading-[2] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 overflow-hidden whitespace-pre pointer-events-none z-[1]">
+        @for (segment of parsedSegments; track segment; let i = $index) {
+          <div class="leading-[1.7] sm:leading-[2]">
+            @if (segment.hasInvalidDate) {
+              <span
+                class="text-red-500 font-bold mr-1"
+                title="This segment contains invalid date(s)"
+                >⚠</span
+              ><span class="text-red-500">{{ getSegmentDisplay(i) }}</span>
+            } @else {
+              <span>{{ getSegmentDisplay(i) }}</span>
+            }
+          </div>
+        }
+      </div>
+    }
   </div>
 
   @if (showError) {

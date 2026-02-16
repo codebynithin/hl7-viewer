@@ -94,5 +94,27 @@ export class AppComponent {
     this.hl7Message = lines.join('\n');
     // Update the selected line content
     this.selectedLineContent = newLine;
+
+    // Store active element before update
+    const activeElement = document.activeElement as HTMLElement;
+    const activeId = activeElement?.id;
+
+    // Update the message editor to refresh the display
+    this.messageEditor.updateMessage(this.hl7Message);
+
+    // Restore focus after a brief delay to allow DOM update
+    if (activeId) {
+      setTimeout(() => {
+        const element = document.getElementById(activeId) as HTMLInputElement;
+        if (element) {
+          element.focus({ preventScroll: true });
+          // Restore cursor position to end
+          if (element.setSelectionRange && element.value) {
+            const length = element.value.length;
+            element.setSelectionRange(length, length);
+          }
+        }
+      }, 0);
+    }
   }
 }

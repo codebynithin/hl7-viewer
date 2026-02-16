@@ -72,15 +72,36 @@
                           type="text"
                           class="floating-label-input"
                           [class.pr-2]="component.isDate"
+                          [class.input-error]="
+                            component.isDate &&
+                            component.value &&
+                            component.isValidDate === false
+                          "
                           [value]="component.value"
                           (input)="onFieldValueChange(fi, ci, getValue($event))"
                           [id]="'field-' + lineIndex + '-' + fi + '-' + ci" />
                         <label
                           class="floating-label"
+                          [class.label-error]="
+                            component.isDate &&
+                            component.value &&
+                            component.isValidDate === false
+                          "
                           [for]="'field-' + lineIndex + '-' + fi + '-' + ci">
                           {{ component.label }}
                         </label>
-                        @if (component.isDate && component.value) {
+                        @if (
+                          component.isDate &&
+                          component.value &&
+                          component.isValidDate === false
+                        ) {
+                          <span class="error-message"> Invalid date </span>
+                        }
+                        @if (
+                          component.isDate &&
+                          component.value &&
+                          component.isValidDate !== false
+                        ) {
                           <span class="date-preview">
                             {{ formatDate(component.value) }}
                           </span>
@@ -105,16 +126,41 @@
                       [class.text-custom-border]="field.isEmpty"
                       [class.italic]="field.isEmpty"
                       [class.pr-2]="field.isDate"
+                      [class.input-error]="
+                        field.isDate &&
+                        !field.isEmpty &&
+                        field.value &&
+                        field.isValidDate === false
+                      "
                       [value]="field.value"
                       [placeholder]="field.isEmpty ? '—' : ''"
                       (input)="onFieldValueChange(fi, null, getValue($event))"
                       [id]="'field-' + lineIndex + '-' + fi" />
                     <label
                       class="floating-label"
+                      [class.label-error]="
+                        field.isDate &&
+                        !field.isEmpty &&
+                        field.value &&
+                        field.isValidDate === false
+                      "
                       [for]="'field-' + lineIndex + '-' + fi">
                       {{ field.fieldName }}
                     </label>
-                    @if (field.isDate && !field.isEmpty && field.value) {
+                    @if (
+                      field.isDate &&
+                      !field.isEmpty &&
+                      field.value &&
+                      field.isValidDate === false
+                    ) {
+                      <span class="error-message"> Invalid date </span>
+                    }
+                    @if (
+                      field.isDate &&
+                      !field.isEmpty &&
+                      field.value &&
+                      field.isValidDate !== false
+                    ) {
                       <span class="date-preview">
                         {{ formatDate(field.value) }}
                       </span>

@@ -149,4 +149,73 @@ export class Hl7ParserService {
 
     return formatted;
   }
+
+  isValidHL7Date(dt: string): boolean {
+    if (!dt || dt.trim() === '') return true;
+
+    const clean = dt.replace(/\D/g, '');
+
+    if (clean.length < 8) return false;
+
+    const year = parseInt(clean.substr(0, 4), 10);
+    const month = parseInt(clean.substr(4, 2), 10);
+    const day = parseInt(clean.substr(6, 2), 10);
+
+    if (year < 1900 || year > 2100) return false;
+
+    if (month < 1 || month > 12) return false;
+
+    if (day < 1 || day > 31) return false;
+
+    const daysInMonth = this.daysInMonth(month, year);
+
+    if (day > daysInMonth) return false;
+
+    if (clean.length >= 10) {
+      const hour = parseInt(clean.substr(8, 2), 10);
+
+      if (hour < 0 || hour > 23) return false;
+    }
+
+    if (clean.length >= 12) {
+      const minute = parseInt(clean.substr(10, 2), 10);
+
+      if (minute < 0 || minute > 59) return false;
+    }
+
+    if (clean.length >= 14) {
+      const second = parseInt(clean.substr(12, 2), 10);
+
+      if (second < 0 || second > 59) return false;
+    }
+
+    return true;
+  }
+
+  private daysInMonth(month: number, year: number): number {
+    const daysMap: { [key: number]: number } = {
+      1: 31,
+      2: 28,
+      3: 31,
+      4: 30,
+      5: 31,
+      6: 30,
+      7: 31,
+      8: 31,
+      9: 30,
+      10: 31,
+      11: 30,
+      12: 31,
+    };
+
+    if (month === 2 && this.isLeapYear(year)) {
+      return 29;
+    }
+
+    return daysMap[month] || 31;
+  }
+
+  private isLeapYear(year: number): boolean {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  }
 }
