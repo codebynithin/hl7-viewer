@@ -120,7 +120,9 @@
       </div>
       <div class="tooltip-label">{{ tooltip.label }}</div>
       @for (val of tooltip.values; track val) {
-        <div class="tooltip-value">{{ val }}</div>
+        <div class="tooltip-value" [style.color]="val.isError ? '#ef4444' : ''">
+          {{ val.text }}
+        </div>
       }
     </div>
   }

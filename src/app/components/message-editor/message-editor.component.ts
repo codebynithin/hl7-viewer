@@ -479,13 +479,23 @@ export class MessageEditorComponent implements OnInit {
       // If text is empty, just return empty
       if (!part) return part;
 
+      let classAttr = 'class="field-value"';
+
+      if (this.hl7Parser.isDateField(fieldName)) {
+        const reps = part.split('~');
+        // Check if any repetition is invalid
+        if (reps.some(r => !this.hl7Parser.isValidHL7Date(r))) {
+          classAttr = 'class="field-value field-error"';
+        }
+      }
+
       // Escape the part for attribute usage (though part is already escaped HTML text,
       // putting it in attribute requires quote escaping if any)
       // Since 'part' comes from 'escaped.split', it has &amp; etc. Safe for double quotes?
       // Yes, unless it has ".
       const safePart = part.replace(/"/g, '&quot;');
 
-      return `${spanStart}
+      return `${spanStart.replace('class="field-value"', classAttr)}
         data-segment="${segName}"
         data-position="${positionStr}"
         data-label="${fieldName}"
@@ -509,7 +519,7 @@ export class MessageEditorComponent implements OnInit {
     segment: '',
     position: '',
     label: '',
-    values: [] as string[],
+    values: [] as { text: string; isError: boolean }[],
   };
 
   public handleMouseOver(event: MouseEvent): void {
@@ -526,7 +536,7 @@ export class MessageEditorComponent implements OnInit {
       this.tooltip.y = event.clientY + 15;
 
       // Parse logic
-      const lines: string[] = [];
+      const lines: { text: string; isError: boolean }[] = [];
       const compDefs = this.hl7Parser.getComponentDefinition(fieldId);
 
       // Split repetitions
@@ -534,7 +544,7 @@ export class MessageEditorComponent implements OnInit {
 
       repetitions.forEach((rep, i) => {
         if (repetitions.length > 1) {
-          lines.push(`-- Repetition ${i + 1} --`);
+          lines.push({ text: `-- Repetition ${i + 1} --`, isError: false });
         }
 
         const comps = rep.split('^');
@@ -542,34 +552,51 @@ export class MessageEditorComponent implements OnInit {
         // Show components if multiple or we have definitions
         if (comps.length > 1 || (compDefs && compDefs.length > 0)) {
           comps.forEach((val, j) => {
-            // If empty, skip unless we have definition? User said "include value".
-            // If value is empty, showing "Name: " is weird?
-            // But if we have definitions, maybe we should show structure?
-            // Let's show structured values IF they are present.
             if (!val) return;
 
             const label = compDefs[j];
+            let text = '';
+            let isError = false;
 
             if (label) {
-              lines.push(`${label}: ${val}`);
+              text = `${label}: ${val}`;
+
+              if (
+                this.hl7Parser.isDateField(label) &&
+                !this.hl7Parser.isValidHL7Date(val)
+              ) {
+                isError = true;
+              }
             } else if (comps.length > 1) {
-              // Component without label
-              lines.push(`Comp ${j + 1}: ${val}`);
+              text = `Comp ${j + 1}: ${val}`;
             } else {
-              // Single value, no label (but matched compDefs > 0 check?)
-              // If compDefs exist but not for this index (e.g. extra component)
-              lines.push(val);
+              text = val;
+            }
+
+            if (text) {
+              lines.push({ text, isError });
             }
           });
         } else {
           // Simple value
-          if (rep) lines.push(rep);
+          if (rep) {
+            let isError = false;
+
+            if (
+              this.hl7Parser.isDateField(this.tooltip.label) &&
+              !this.hl7Parser.isValidHL7Date(rep)
+            ) {
+              isError = true;
+            }
+
+            lines.push({ text: rep, isError });
+          }
         }
       });
 
       // If lines empty (e.g. just separators?), fallback to raw
       if (lines.length === 0 && rawValue) {
-        lines.push(rawValue);
+        lines.push({ text: rawValue, isError: false });
       }
 
       this.tooltip.values = lines;
