@@ -185,3 +185,8 @@ body {
   color: var(--color-text-bright);
   font-weight: bold;
 }
+
+.field-error {
+  color: #ef4444 !important;
+  text-decoration: underline wavy #ef4444;
+}
