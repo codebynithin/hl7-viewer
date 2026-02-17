@@ -1,6 +1,5 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Hl7ParserService } from '../../services/hl7-parser.service';
 
@@ -12,7 +11,7 @@ interface ParsedSegment {
 
 @Component({
   selector: 'app-message-editor',
-  imports: [FormsModule, CommonModule],
+  imports: [CommonModule],
   templateUrl: './message-editor.component.html',
   styleUrl: './message-editor.component.scss',
 })
@@ -57,6 +56,38 @@ export class MessageEditorComponent implements OnInit {
     this.messageChanged.emit(this.hl7Message);
   }
 
+  public onContentInput(event: Event): void {
+    const el = event.target as HTMLDivElement;
+
+    this.hl7Message = el.innerText;
+
+    this.onMessageInput();
+    this.updatePlaceholder();
+  }
+
+  public onPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+
+    const text = event.clipboardData?.getData('text/plain') || '';
+
+    document.execCommand('insertText', false, text);
+
+    const el = document.getElementById('hl7input') as HTMLDivElement;
+
+    if (el) {
+      this.hl7Message = el.innerText;
+    }
+
+    this.onMessageInput();
+    this.updatePlaceholder();
+  }
+
+  public onBlur(): void {
+    if (this.hl7Message) {
+      this.applyHighlighting();
+    }
+  }
+
   public onTextareaClick(event: MouseEvent): void {
     this.handleCursorMove();
   }
@@ -78,21 +109,16 @@ export class MessageEditorComponent implements OnInit {
   }
 
   public onScroll(): void {
-    const textarea = document.getElementById('hl7input') as HTMLTextAreaElement;
-    const display = document.getElementById('hl7display') as HTMLDivElement;
+    const editable = document.getElementById('hl7input') as HTMLDivElement;
     const lineNumbersEl = document.getElementById('lineNumbers');
     const highlight = document.getElementById('lineHighlight');
 
-    if (textarea && lineNumbersEl) {
-      lineNumbersEl.scrollTop = textarea.scrollTop;
+    if (editable && lineNumbersEl) {
+      lineNumbersEl.scrollTop = editable.scrollTop;
     }
 
-    if (textarea && display) {
-      display.style.transform = `translateY(-${textarea.scrollTop}px)`;
-    }
-
-    if (this.currentLineIndex >= 0 && highlight && textarea) {
-      const scrollTop = textarea.scrollTop;
+    if (this.currentLineIndex >= 0 && highlight && editable) {
+      const scrollTop = editable.scrollTop;
       const top =
         this.paddingTop + this.currentLineIndex * this.lineHeight - scrollTop;
 
@@ -107,12 +133,19 @@ export class MessageEditorComponent implements OnInit {
     this.parsedSegments = [];
     this.showError = false;
 
+    const el = document.getElementById('hl7input') as HTMLDivElement;
+
+    if (el) {
+      el.innerHTML = '';
+    }
+
     const highlight = document.getElementById('lineHighlight');
 
     if (highlight) {
       highlight.style.display = 'none';
     }
 
+    this.updatePlaceholder();
     this.messageChanged.emit(this.hl7Message);
     this.lineSelected.emit({ lineContent: '', lineIndex: -1 });
   }
@@ -125,29 +158,35 @@ export class MessageEditorComponent implements OnInit {
 
   public updateMessage(message: string): void {
     this.hl7Message = message;
+
     this.updateLineNumbers();
     this.validateMessage();
     this.parseSegments();
+    this.setEditableContent();
   }
 
   public onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
+
     this.isDragOver = true;
   }
 
   public onDragLeave(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
+
     this.isDragOver = false;
   }
 
   public onFileDrop(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
+
     this.isDragOver = false;
 
     const files = event.dataTransfer?.files;
+
     if (files && files.length > 0) {
       this.readHL7File(files[0]);
     }
@@ -156,9 +195,11 @@ export class MessageEditorComponent implements OnInit {
   public onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = input.files;
+
     if (files && files.length > 0) {
       this.readHL7File(files[0]);
     }
+
     input.value = '';
   }
 
@@ -167,11 +208,11 @@ export class MessageEditorComponent implements OnInit {
   }
 
   private handleCursorMove(): void {
-    const textarea = document.getElementById('hl7input') as HTMLTextAreaElement;
+    const editable = document.getElementById('hl7input') as HTMLDivElement;
 
-    if (!textarea) return;
+    if (!editable) return;
 
-    const lineIndex = this.getCursorLineIndex(textarea);
+    const lineIndex = this.getCursorLineIndex(editable);
     const lines = this.getLines();
 
     if (lineIndex !== this.currentLineIndex) {
@@ -186,12 +227,73 @@ export class MessageEditorComponent implements OnInit {
     });
   }
 
-  private getCursorLineIndex(textarea: HTMLTextAreaElement): number {
-    const val = textarea.value;
-    const pos = textarea.selectionStart;
-    const before = val.substring(0, pos);
+  private getCursorLineIndex(editable: HTMLDivElement): number {
+    const selection = window.getSelection();
 
-    return before.split(/\r\n|\r|\n/).length - 1;
+    if (!selection || selection.rangeCount === 0) return 0;
+
+    let node = selection.anchorNode;
+
+    // Validation to ensure node is inside editable
+    if (!editable.contains(node)) return 0;
+
+    // Helper to count lines in a set of nodes
+    const countLines = (limitNode: Node | null) => {
+      let count = 0;
+
+      for (let i = 0; i < editable.childNodes.length; i++) {
+        const child = editable.childNodes[i];
+
+        if (child === limitNode) break;
+
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          count++;
+        } else if (child.nodeType === Node.TEXT_NODE) {
+          const text = child.textContent || '';
+
+          if (text.trim().length > 0) {
+            count++;
+          }
+        }
+      }
+
+      return count;
+    };
+
+    // Case 1: Cursor is directly on the editable container
+    if (node === editable) {
+      // Return last line index
+      const total = countLines(null);
+
+      return Math.max(0, total - 1);
+    }
+
+    // Traverse to direct child
+    let directChild = node;
+
+    while (directChild && directChild.parentNode !== editable) {
+      directChild = directChild.parentNode;
+    }
+
+    if (!directChild) return 0;
+
+    // Count lines from previous siblings
+    let lineIndex = countLines(directChild);
+
+    // If directChild is Text Node, add lines within it up to cursor
+    if (directChild.nodeType === Node.TEXT_NODE) {
+      const range = selection.getRangeAt(0);
+      const preCaretRange = range.cloneRange();
+
+      preCaretRange.selectNodeContents(directChild);
+      preCaretRange.setEnd(range.startContainer, range.startOffset);
+
+      const textBefore = preCaretRange.toString();
+
+      lineIndex += Math.max(0, textBefore.split(/\r\n|\r|\n/).length - 1);
+    }
+
+    return lineIndex;
   }
 
   private getLines(): string[] {
@@ -209,11 +311,11 @@ export class MessageEditorComponent implements OnInit {
 
     if (!highlight) return;
 
-    const textarea = document.getElementById('hl7input') as HTMLTextAreaElement;
+    const editable = document.getElementById('hl7input') as HTMLDivElement;
 
-    if (!textarea) return;
+    if (!editable) return;
 
-    const scrollTop = textarea.scrollTop;
+    const scrollTop = editable.scrollTop;
     const top =
       this.paddingTop + this.currentLineIndex * this.lineHeight - scrollTop;
 
@@ -234,19 +336,26 @@ export class MessageEditorComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = () => {
       const content = reader.result as string;
+
       this.hl7Message = content;
+
       this.updateLineNumbers();
       this.validateMessage();
       this.parseSegments();
+      this.setEditableContent();
+
       this.currentLineIndex = -1;
+
       this.messageChanged.emit(this.hl7Message);
       this.lineSelected.emit({ lineContent: '', lineIndex: -1 });
 
       const highlight = document.getElementById('lineHighlight');
+
       if (highlight) {
         highlight.style.display = 'none';
       }
     };
+
     reader.readAsText(file);
   }
 
@@ -306,5 +415,236 @@ export class MessageEditorComponent implements OnInit {
     const lines = this.getLines();
 
     return lines[index] || '';
+  }
+
+  private getSegmentHtml(line: string, index: number): string {
+    const escaped = line
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    if (!line || !line.trim()) return escaped;
+
+    const segment = this.parsedSegments[index];
+    const hasInvalidDate = segment ? segment.hasInvalidDate : false;
+    // Get segment name (first 3 chars usually)
+    const segName = line.split('|')[0];
+    const def = this.hl7Parser.getSegmentDefinition(segName);
+    // Split by separator (assumed |)
+    const parts = escaped.split('|');
+    const isMSH = segName === 'MSH';
+    const spanStart = '<span class="field-value"';
+    const spanEnd = '</span>';
+
+    const highlightedParts = parts.map((part, partIndex) => {
+      // Segment ID (index 0)
+      if (partIndex === 0) {
+        return `<span class="segment-id">${part}</span>`;
+      }
+
+      // Determine field name and position strings
+      let fieldName = '';
+      let positionStr = '';
+
+      if (isMSH) {
+        // MSH-1 is the separator.
+        // partIndex 1 is MSH-2 (Encoding Chars).
+        // partIndex 2 is MSH-3.
+        // Hl7ParserService def.fields usually starts with "Field Separator" at index 0?
+        // Let's assume def.fields aligns with HL7 field index - 1 for non-MSH.
+        // For MSH: MSH-1 is Separator. MSH-2 is Encoding.
+        // If def.fields[0] is MSH-1 (Separator), then def.fields[1] is MSH-2.
+        // Part index 1 is MSH-2. So parts[k] matches def.fields[k].
+
+        fieldName = def.fields[partIndex] || `MSH-${partIndex + 1}`;
+        // But wait, if MSH-1 is separator, it's not in parts array (which splits by separator).
+        // The split consumes separator.
+        // Part 0 is "MSH".
+        // Part 1 is MSH-2 (Encoding).
+        // Part 2 is MSH-3.
+        // So partIndex matches Field Index for MSH (except 0 which is name).
+        // e.g. Part 1 -> Field 1? No. Part 1 is Field 2.
+        // So Part Index k -> Field Index k+1.
+        positionStr = `MSH-${partIndex + 1}`;
+      } else {
+        // Non-MSH:
+        // Part 0 is Name.
+        // Part 1 is Field 1.
+        // Part 2 is Field 2.
+        // So Part Index k -> Field Index k.
+        fieldName = def.fields[partIndex - 1] || `Field ${partIndex}`;
+        positionStr = `${segName}-${partIndex}`;
+      }
+
+      // If text is empty, just return empty
+      if (!part) return part;
+
+      // Escape the part for attribute usage (though part is already escaped HTML text,
+      // putting it in attribute requires quote escaping if any)
+      // Since 'part' comes from 'escaped.split', it has &amp; etc. Safe for double quotes?
+      // Yes, unless it has ".
+      const safePart = part.replace(/"/g, '&quot;');
+
+      return `${spanStart}
+        data-segment="${segName}"
+        data-position="${positionStr}"
+        data-label="${fieldName}"
+        >${part}${spanEnd}`;
+    });
+
+    const joined = highlightedParts.join('|');
+
+    if (hasInvalidDate) {
+      return `<span class="text-red-500 font-bold mr-1" title="This segment contains invalid date(s)">⚠</span>${joined}`;
+    }
+
+    return joined;
+  }
+
+  // Tooltip state
+  public tooltip = {
+    visible: false,
+    x: 0,
+    y: 0,
+    segment: '',
+    position: '',
+    label: '',
+    values: [] as string[],
+  };
+
+  public handleMouseOver(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('field-value')) {
+      const fieldId = target.getAttribute('data-position') || '';
+      const rawValue = target.innerText;
+
+      this.tooltip.segment = target.getAttribute('data-segment') || '';
+      this.tooltip.position = fieldId;
+      this.tooltip.label = target.getAttribute('data-label') || '';
+
+      this.tooltip.x = event.clientX + 15;
+      this.tooltip.y = event.clientY + 15;
+
+      // Parse logic
+      const lines: string[] = [];
+      const compDefs = this.hl7Parser.getComponentDefinition(fieldId);
+
+      // Split repetitions
+      const repetitions = rawValue.split('~');
+
+      repetitions.forEach((rep, i) => {
+        if (repetitions.length > 1) {
+          lines.push(`-- Repetition ${i + 1} --`);
+        }
+
+        const comps = rep.split('^');
+
+        // Show components if multiple or we have definitions
+        if (comps.length > 1 || (compDefs && compDefs.length > 0)) {
+          comps.forEach((val, j) => {
+            // If empty, skip unless we have definition? User said "include value".
+            // If value is empty, showing "Name: " is weird?
+            // But if we have definitions, maybe we should show structure?
+            // Let's show structured values IF they are present.
+            if (!val) return;
+
+            const label = compDefs[j];
+
+            if (label) {
+              lines.push(`${label}: ${val}`);
+            } else if (comps.length > 1) {
+              // Component without label
+              lines.push(`Comp ${j + 1}: ${val}`);
+            } else {
+              // Single value, no label (but matched compDefs > 0 check?)
+              // If compDefs exist but not for this index (e.g. extra component)
+              lines.push(val);
+            }
+          });
+        } else {
+          // Simple value
+          if (rep) lines.push(rep);
+        }
+      });
+
+      // If lines empty (e.g. just separators?), fallback to raw
+      if (lines.length === 0 && rawValue) {
+        lines.push(rawValue);
+      }
+
+      this.tooltip.values = lines;
+
+      // Adjust if close to right edge
+      if (this.tooltip.x + 300 > window.innerWidth) {
+        this.tooltip.x = event.clientX - 315;
+      }
+
+      // Adjust if tooltip goes below viewport
+      const estHeight = 60 + lines.length * 15;
+
+      if (this.tooltip.y + estHeight > window.innerHeight) {
+        this.tooltip.y = event.clientY - estHeight;
+      }
+
+      this.tooltip.visible = true;
+    }
+  }
+
+  public handleMouseOut(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('field-value')) {
+      this.tooltip.visible = false;
+    }
+  }
+
+  private buildHighlightedHtml(): string {
+    if (!this.hl7Message) {
+      return '';
+    }
+
+    const lines = this.getLines();
+    const htmlLines = lines.map((line, i) => {
+      // Pass the line and index to new getSegmentHtml signature
+      return `<div class="leading-[1.7] sm:leading-[2]">${this.getSegmentHtml(line, i)}</div>`;
+    });
+
+    return htmlLines.join('');
+  }
+
+  /** Apply syntax highlighting (called on blur or programmatic content set) */
+  private applyHighlighting(): void {
+    const el = document.getElementById('hl7input') as HTMLDivElement;
+    if (!el || !this.hl7Message) return;
+
+    el.innerHTML = this.buildHighlightedHtml();
+  }
+
+  /** Set the editable div content with highlighting (for programmatic updates like file load) */
+  private setEditableContent(): void {
+    const el = document.getElementById('hl7input') as HTMLDivElement;
+    if (!el) return;
+
+    if (this.hl7Message) {
+      el.innerHTML = this.buildHighlightedHtml();
+    } else {
+      el.innerHTML = '';
+    }
+    this.updatePlaceholder();
+  }
+
+  /** Toggle placeholder visibility based on content */
+  private updatePlaceholder(): void {
+    const el = document.getElementById('hl7input') as HTMLDivElement;
+
+    if (!el) return;
+
+    if (!this.hl7Message || this.hl7Message.trim() === '') {
+      el.setAttribute(
+        'data-placeholder',
+        'Paste or type your HL7 message here...\n\nMSH|^~\\&|SendApp|SendFac|RecApp|RecFac|20230915120000||ADT^A01|MSG001|P|2.5\nPID|1||123456^^^Hospital^MR||Doe^John^A||19800101|M\nPV1|1|I|ICU^101^A\n\nClick a line to inspect its fields.\nEdits are reflected instantly.'
+      );
+    } else {
+      el.removeAttribute('data-placeholder');
+    }
   }
 }

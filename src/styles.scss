@@ -165,3 +165,23 @@ body {
   opacity: 0.9;
   font-family: 'JetBrains Mono', monospace;
 }
+
+.field-value {
+  color: var(--color-text-bright);
+  border-radius: 2px;
+  transition: background-color 0.1s;
+  padding: 0 1px;
+  cursor: help;
+
+  &:hover {
+    background-color: var(--input-focus-bg);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--color-text-dim);
+  }
+}
+
+.segment-id {
+  color: var(--color-text-bright);
+  font-weight: bold;
+}
