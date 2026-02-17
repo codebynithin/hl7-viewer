@@ -14,10 +14,12 @@ export interface FieldData {
   components?: ComponentData[];
   isEmpty: boolean;
   isDate: boolean;
+  isValidDate?: boolean;
 }
 
 export interface ComponentData {
   label: string;
   value: string;
   isDate: boolean;
+  isValidDate?: boolean;
 }

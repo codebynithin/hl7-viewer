@@ -1,0 +1,75 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+[contenteditable]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-dim);
+  opacity: 0.6;
+  pointer-events: none;
+  font-style: italic;
+}
+
+[contenteditable]:focus {
+  outline: none;
+}
+
+.text-dim {
+  color: var(--color-text-dim);
+}
+
+.hl7-tooltip {
+  position: fixed;
+  z-index: 1000;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  color: var(--color-text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  min-width: 240px;
+  max-width: 360px;
+  pointer-events: none;
+  font-family: 'JetBrains Mono', monospace;
+
+  .tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 4px;
+
+    .segment-id {
+      font-weight: bold;
+      color: var(--color-accent);
+    }
+
+    .field-pos {
+      color: var(--color-text-dim);
+      font-size: 10px;
+    }
+  }
+
+  .tooltip-label {
+    font-weight: 600;
+    color: var(--color-text-bright);
+    margin-bottom: 2px;
+  }
+
+  .tooltip-value {
+    color: var(--color-text-dim);
+    word-break: break-all;
+    font-size: 11px;
+    font-style: italic;
+  }
+}
+
+#hl7input {
+  color: var(--color-text-dim);
+}

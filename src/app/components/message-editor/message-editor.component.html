@@ -88,22 +88,40 @@
       id="lineHighlight"
       class="absolute left-[28px] sm:left-[38px] right-0 pointer-events-none bg-[rgba(30,184,224,0.3)] border-l-2 sm:border-l-[3px] border-custom-accent transition-all duration-75 ease-out hidden"></div>
 
-    <textarea
+    <div
       id="hl7input"
-      [(ngModel)]="hl7Message"
-      (input)="onMessageInput()"
+      contenteditable="true"
+      spellcheck="false"
+      (input)="onContentInput($event)"
       (click)="onTextareaClick($event)"
       (keyup)="onKeyUp()"
       (scroll)="onScroll()"
-      wrap="off"
-      placeholder="Paste or type your HL7 message here...&#10;&#10;MSH|^~\&|SendApp|SendFac|RecApp|RecFac|20230915120000||ADT^A01|MSG001|P|2.5&#10;PID|1||123456^^^Hospital^MR||Doe^John^A||19800101|M&#10;PV1|1|I|ICU^101^A&#10;&#10;Click a line to inspect its fields.&#10;Edits are reflected instantly."
-      class="flex-1 bg-transparent text-custom-text font-mono text-[10px] leading-[1.7] sm:leading-[2] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 border-none resize-none outline-none overflow-x-auto overflow-y-auto whitespace-pre caret-custom-accent relative z-[1] scrollbar-thin placeholder:text-custom-text-dim placeholder:text-[9px] sm:placeholder:text-[11px]"></textarea>
+      (paste)="onPaste($event)"
+      (blur)="onBlur()"
+      (mouseover)="handleMouseOver($event)"
+      (mouseout)="handleMouseOut($event)"
+      class="hl7-editable flex-1 bg-transparent text-custom-text font-mono text-[10px] leading-[1.7] sm:leading-[2] py-2 sm:py-3.5 pr-2 sm:pr-3.5 pl-1.5 sm:pl-2.5 border-none outline-none overflow-x-auto overflow-y-auto whitespace-pre caret-custom-accent relative z-[2] scrollbar-thin"></div>
   </div>
 
   @if (showError) {
     <div
       class="py-1 sm:py-1.5 px-3 sm:px-4 bg-[rgba(255,107,53,0.1)] border-t border-[rgba(255,107,53,0.2)] text-custom-accent3 text-[9px] sm:text-[10px] flex-shrink-0">
       ⚠ First segment should be MSH
+    </div>
+  }
+  @if (tooltip.visible) {
+    <div
+      class="hl7-tooltip"
+      [style.top.px]="tooltip.y"
+      [style.left.px]="tooltip.x">
+      <div class="tooltip-header">
+        <span class="segment-id">{{ tooltip.segment }}</span>
+        <span class="field-pos">{{ tooltip.position }}</span>
+      </div>
+      <div class="tooltip-label">{{ tooltip.label }}</div>
+      @for (val of tooltip.values; track val) {
+        <div class="tooltip-value">{{ val }}</div>
+      }
     </div>
   }
 </div>
