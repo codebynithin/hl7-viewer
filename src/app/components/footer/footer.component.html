@@ -12,9 +12,12 @@
       >. All rights reserved.
     </p>
     <a
-      href="mailto:info@codebynithin.com?subject=HL7%20Viewer%20-%20Suggestion&amp;body=Hi%2C%20I%20have%20a%20suggestion%20for%20the%20HL7%20Viewer%3A%0A%0A"
       target="_blank"
-      class="flex items-center gap-1 text-[10px] sm:text-[11px] text-custom-text-dim hover:text-custom-accent transition-colors duration-150 font-medium group">
+      rel="noopener noreferrer"
+      class="flex items-center gap-1 text-[10px] sm:text-[11px] text-custom-text-dim hover:text-custom-accent transition-colors duration-150 font-medium group"
+      [href]="githubIssueUrl || null"
+      [attr.aria-disabled]="!githubIssueUrl"
+      [ngClass]="{ 'pointer-events-none opacity-50': !githubIssueUrl }">
       <svg
         class="w-3.5 h-3.5 text-custom-text-dim group-hover:text-custom-accent transition-colors"
         fill="none"
@@ -24,9 +27,9 @@
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="2"
-          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          d="M12 4v16m8-8H4" />
       </svg>
-      Share your suggestions to info&#64;codebynithin.com
+      Create a GitHub issue
     </a>
   </div>
 </footer>

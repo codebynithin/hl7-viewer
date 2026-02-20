@@ -10,4 +10,5 @@ import { CommonModule } from '@angular/common';
 })
 export class FooterComponent {
   public currentYear = new Date().getFullYear();
+  public githubIssueUrl = 'https://github.com/codebynithin/hl7-viewer/issues';
 }
