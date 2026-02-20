@@ -110,6 +110,8 @@ body {
   font-size: 11px;
   outline: none;
   transition: all 0.2s ease;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .floating-label-input::placeholder {

@@ -1,0 +1,94 @@
+@if (isActive) {
+  <div class="tutorial-overlay">
+    <!-- Backdrop -->
+    <div class="tutorial-backdrop"></div>
+
+    <!-- Highlight box -->
+    @if (highlightRect) {
+      <div class="tutorial-highlight" [ngStyle]="getHighlightStyle()"></div>
+    }
+
+    <!-- Tooltip -->
+    <div class="tutorial-tooltip" [ngStyle]="getTooltipStyle()">
+      <div class="tutorial-content">
+        <div class="tutorial-header">
+          <h3 class="tutorial-title">{{ currentStep?.title }}</h3>
+          <div class="tutorial-progress">
+            Step {{ currentStepIndex + 1 }} of {{ totalSteps }}
+          </div>
+        </div>
+
+        <p class="tutorial-description">{{ currentStep?.description }}</p>
+
+        <div class="tutorial-actions">
+          <button
+            (click)="onSkip()"
+            class="tutorial-btn tutorial-btn-secondary"
+            type="button">
+            Skip Tour
+          </button>
+
+          <div class="tutorial-nav">
+            @if (!isFirstStep()) {
+              <button
+                (click)="onPrevious()"
+                class="tutorial-btn tutorial-btn-secondary"
+                type="button">
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
+              </button>
+            }
+
+            @if (isLastStep()) {
+              <button
+                (click)="onComplete()"
+                class="tutorial-btn tutorial-btn-primary"
+                type="button">
+                Get Started
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+            } @else {
+              <button
+                (click)="onNext()"
+                class="tutorial-btn tutorial-btn-primary"
+                type="button">
+                Next
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

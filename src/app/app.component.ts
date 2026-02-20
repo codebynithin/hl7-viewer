@@ -1,9 +1,11 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 
 import { HeaderComponent } from './components/header/header.component';
 import { MessageEditorComponent } from './components/message-editor/message-editor.component';
 import { SegmentDetailComponent } from './components/segment-detail/segment-detail.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { TutorialComponent } from './components/tutorial/tutorial.component';
+import { TutorialService } from './services/tutorial.service';
 
 @Component({
   selector: 'app-root',
@@ -12,16 +14,26 @@ import { FooterComponent } from './components/footer/footer.component';
     MessageEditorComponent,
     SegmentDetailComponent,
     FooterComponent,
+    TutorialComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+  constructor(private tutorialService: TutorialService) {}
   @ViewChild(MessageEditorComponent) messageEditor!: MessageEditorComponent;
 
   public selectedLineContent = '';
   public selectedLineIndex = -1;
   public hl7Message = '';
+
+  ngOnInit(): void {
+    if (this.tutorialService.shouldShowTutorial()) {
+      setTimeout(() => {
+        this.tutorialService.startTutorial();
+      }, 500);
+    }
+  }
 
   public onLineSelected(event: {
     lineContent: string;
