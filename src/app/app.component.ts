@@ -39,6 +39,10 @@ export class AppComponent {
     this.messageEditor.copyToClipboard();
   }
 
+  public handleUpload(): void {
+    this.messageEditor.triggerFileUpload();
+  }
+
   public handleClear(): void {
     this.messageEditor.clearAll();
   }

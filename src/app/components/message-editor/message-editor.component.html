@@ -17,25 +17,8 @@
       <span class="text-custom-accent">Click any line</span> to inspect its
       fields
     </span>
-    <button
-      (click)="hl7FileInput.click()"
-      class="flex items-center gap-1 px-2 py-0.5 text-[9px] text-custom-text-dim hover:text-custom-accent border border-custom-border rounded hover:border-custom-accent/30 transition-all duration-150 cursor-pointer"
-      title="Upload HL7 file">
-      <svg
-        class="w-3 h-3"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-      Upload
-    </button>
     <input
-      #hl7FileInput
+      id="hl7FileInput"
       type="file"
       accept=".hl7,.txt,.dat"
       class="hidden"

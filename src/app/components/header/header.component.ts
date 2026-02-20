@@ -13,6 +13,7 @@ export class HeaderComponent {
   public isDarkMode$ = this.themeService.isDarkMode$;
   public readonly appVersion = `v${packageJson.version}`;
 
+  @Output() uploadClicked = new EventEmitter<void>();
   @Output() copyClicked = new EventEmitter<void>();
   @Output() clearClicked = new EventEmitter<void>();
 
@@ -24,6 +25,10 @@ export class HeaderComponent {
 
   public onCopy(): void {
     this.copyClicked.emit();
+  }
+
+  public onUpload(): void {
+    this.uploadClicked.emit();
   }
 
   public onClear(): void {

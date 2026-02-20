@@ -1,4 +1,10 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Output,
+  EventEmitter,
+  AfterViewInit,
+} from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { Hl7ParserService } from '../../services/hl7-parser.service';
@@ -15,7 +21,7 @@ interface ParsedSegment {
   templateUrl: './message-editor.component.html',
   styleUrl: './message-editor.component.scss',
 })
-export class MessageEditorComponent implements OnInit {
+export class MessageEditorComponent implements OnInit, AfterViewInit {
   public hl7Message = '';
   public lineNumbers: number[] = [];
   public currentLineIndex = -1;
@@ -39,6 +45,12 @@ export class MessageEditorComponent implements OnInit {
   ngOnInit(): void {
     this.checkMobile();
     window.addEventListener('resize', () => this.checkMobile());
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.updatePlaceholder();
+    }, 0);
   }
 
   get lineHeight(): number {
@@ -154,6 +166,11 @@ export class MessageEditorComponent implements OnInit {
     if (!this.hl7Message) return;
 
     navigator.clipboard.writeText(this.hl7Message);
+  }
+
+  public triggerFileUpload(): void {
+    const input = document.getElementById('hl7FileInput') as HTMLInputElement;
+    input?.click();
   }
 
   public updateMessage(message: string): void {
@@ -666,12 +683,19 @@ export class MessageEditorComponent implements OnInit {
     if (!el) return;
 
     if (!this.hl7Message || this.hl7Message.trim() === '') {
+      // Ensure the editable is truly empty; browsers often keep <br> which breaks :empty
+      if (el.innerHTML.trim() !== '') {
+        el.innerHTML = '';
+      }
+
       el.setAttribute(
         'data-placeholder',
         'Paste or type your HL7 message here...\n\nMSH|^~\\&|SendApp|SendFac|RecApp|RecFac|20230915120000||ADT^A01|MSG001|P|2.5\nPID|1||123456^^^Hospital^MR||Doe^John^A||19800101|M\nPV1|1|I|ICU^101^A\n\nClick a line to inspect its fields.\nEdits are reflected instantly.'
       );
+      el.setAttribute('data-empty', 'true');
     } else {
       el.removeAttribute('data-placeholder');
+      el.removeAttribute('data-empty');
     }
   }
 }
