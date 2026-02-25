@@ -19,12 +19,22 @@ interface JsonSegment {
   fields: { [key: string]: JsonField };
 }
 
-type JsonSegmentData = { [key: string]: JsonSegment };
+interface JsonVoiceAgentConfig {
+  segmentPurposeMap?: { [key: string]: string };
+  valueSetHints?: { [key: string]: string[] };
+}
+
+interface JsonSegmentData {
+  __voiceAgent?: JsonVoiceAgentConfig;
+  [key: string]: JsonSegment | JsonVoiceAgentConfig | undefined;
+}
 
 @Injectable({ providedIn: 'root' })
 export class Hl7ParserService {
   private segmentDefs: { [key: string]: SegmentDefinition } = {};
   private compDefs: ComponentDefinition = {};
+  private segmentPurposeMap: { [key: string]: string } = {};
+  private valueSetHints: { [key: string]: string[] } = {};
   private loaded = false;
 
   constructor(private http: HttpClient) {
@@ -44,8 +54,22 @@ export class Hl7ParserService {
   }
 
   private buildDefinitions(data: JsonSegmentData): void {
+    if (data.__voiceAgent) {
+      this.segmentPurposeMap = data.__voiceAgent.segmentPurposeMap || {};
+      this.valueSetHints = data.__voiceAgent.valueSetHints || {};
+    }
+
     for (const segKey of Object.keys(data)) {
+      if (segKey.startsWith('__')) {
+        continue;
+      }
+
       const seg = data[segKey];
+
+      if (!seg || !('fields' in seg)) {
+        continue;
+      }
+
       const fieldKeys = Object.keys(seg.fields).sort((a, b) => {
         const numA = parseInt(a.split('.')[1], 10);
         const numB = parseInt(b.split('.')[1], 10);
@@ -93,6 +117,14 @@ export class Hl7ParserService {
 
   getComponentDefinition(fieldNum: string): string[] {
     return this.compDefs[fieldNum] || [];
+  }
+
+  getSegmentPurpose(segmentName: string): string {
+    return this.segmentPurposeMap[segmentName] || '';
+  }
+
+  getValueSetHint(fieldId: string): string[] {
+    return this.valueSetHints[fieldId] || [];
   }
 
   parseSegment(line: string): { segmentName: string; fields: string[] } | null {

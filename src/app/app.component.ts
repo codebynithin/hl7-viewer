@@ -5,6 +5,7 @@ import { MessageEditorComponent } from './components/message-editor/message-edit
 import { SegmentDetailComponent } from './components/segment-detail/segment-detail.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { TutorialComponent } from './components/tutorial/tutorial.component';
+import { VoiceAgentComponent } from './components/voice-agent/voice-agent.component';
 import { TutorialService } from './services/tutorial.service';
 
 @Component({
@@ -15,6 +16,7 @@ import { TutorialService } from './services/tutorial.service';
     SegmentDetailComponent,
     FooterComponent,
     TutorialComponent,
+    VoiceAgentComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -22,10 +24,15 @@ import { TutorialService } from './services/tutorial.service';
 export class AppComponent implements OnInit {
   constructor(private tutorialService: TutorialService) {}
   @ViewChild(MessageEditorComponent) messageEditor!: MessageEditorComponent;
+  @ViewChild(VoiceAgentComponent) voiceAgent?: VoiceAgentComponent;
 
   public selectedLineContent = '';
   public selectedLineIndex = -1;
   public hl7Message = '';
+
+  public get hasHl7Content(): boolean {
+    return this.hl7Message.trim().length > 0;
+  }
 
   ngOnInit(): void {
     if (this.tutorialService.shouldShowTutorial()) {
@@ -41,6 +48,13 @@ export class AppComponent implements OnInit {
   }): void {
     this.selectedLineContent = event.lineContent;
     this.selectedLineIndex = event.lineIndex;
+  }
+
+  public onLineClicked(event: {
+    lineContent: string;
+    lineIndex: number;
+  }): void {
+    this.voiceAgent?.explainLine(event.lineContent, event.lineIndex);
   }
 
   public onMessageChanged(message: string): void {

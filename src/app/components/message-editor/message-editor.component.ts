@@ -38,6 +38,10 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
     lineContent: string;
     lineIndex: number;
   }>();
+  @Output() lineClicked = new EventEmitter<{
+    lineContent: string;
+    lineIndex: number;
+  }>();
   @Output() messageChanged = new EventEmitter<string>();
 
   constructor(private hl7Parser: Hl7ParserService) {}
@@ -100,8 +104,10 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
     }
   }
 
-  public onTextareaClick(event: MouseEvent): void {
-    this.handleCursorMove();
+  public onTextareaClick(): void {
+    const selectedLine = this.handleCursorMove();
+
+    this.lineClicked.emit(selectedLine);
   }
 
   public onKeyUp(): void {
@@ -112,11 +118,13 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
     this.currentLineIndex = lineIndex;
 
     const lines = this.getLines();
-
-    this.lineSelected.emit({
+    const payload = {
       lineContent: lines[lineIndex] || '',
       lineIndex,
-    });
+    };
+
+    this.lineSelected.emit(payload);
+    this.lineClicked.emit(payload);
     this.updateHighlight();
   }
 
@@ -224,10 +232,11 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
     this.isMobile = window.innerWidth < 640;
   }
 
-  private handleCursorMove(): void {
+  private handleCursorMove(): { lineContent: string; lineIndex: number } {
     const editable = document.getElementById('hl7input') as HTMLDivElement;
+    const fallback = { lineContent: '', lineIndex: 0 };
 
-    if (!editable) return;
+    if (!editable) return fallback;
 
     const lineIndex = this.getCursorLineIndex(editable);
     const lines = this.getLines();
@@ -238,10 +247,14 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
       this.updateHighlight();
     }
 
-    this.lineSelected.emit({
+    const selected = {
       lineContent: lines[lineIndex] || '',
       lineIndex,
-    });
+    };
+
+    this.lineSelected.emit(selected);
+
+    return selected;
   }
 
   private getCursorLineIndex(editable: HTMLDivElement): number {

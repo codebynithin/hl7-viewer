@@ -1,0 +1,145 @@
+<div
+  class="voice-agent"
+  [class.voice-agent--collapsed]="isCollapsed"
+  role="complementary"
+  aria-label="Voice Agent">
+  <div class="voice-agent__header">
+    <div class="voice-agent__title">
+      <span class="voice-agent__dot"></span>
+      <span>VOICE AGENT</span>
+    </div>
+    <button
+      type="button"
+      class="voice-agent__toggle"
+      (click)="toggleMinimize()"
+      [disabled]="!hasMessage"
+      [attr.aria-label]="collapseToggleLabel + ' voice agent'">
+      @if (isCollapsed) {
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.8"
+          stroke="currentColor"
+          aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4v16m8-8H4" />
+        </svg>
+      } @else {
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.8"
+          stroke="currentColor"
+          aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16" />
+        </svg>
+      }
+    </button>
+  </div>
+
+  @if (!isCollapsed) {
+    <div class="voice-agent__avatar">
+      <div class="voice-agent__avatar-frame">
+        <img
+          class="voice-agent__avatar-image"
+          src="assets/images/voice-agent-female.svg"
+          alt="Female voice agent" />
+        <div
+          class="voice-agent__mouth"
+          [class.voice-agent__mouth--talking]="isSpeaking && !isPaused">
+          <span class="voice-agent__mouth-opening"></span>
+        </div>
+      </div>
+      <div
+        class="voice-agent__avatar-state"
+        [class.voice-agent__avatar-state--speaking]="isSpeaking && !isPaused">
+        {{ isSpeaking && !isPaused ? 'Speaking' : 'Idle' }}
+      </div>
+    </div>
+
+    <div class="voice-agent__status">
+      @if (activeLineNumber !== null) {
+        <div class="voice-agent__line">Line {{ activeLineNumber }}</div>
+      } @else {
+        <div class="voice-agent__line">No line selected</div>
+      }
+
+      <div class="voice-agent__text">{{ statusText }}</div>
+
+      @if (lastCommand) {
+        <div class="voice-agent__heard">Heard: {{ lastCommand }}</div>
+      }
+    </div>
+
+    <div class="voice-agent__actions">
+      <button
+        type="button"
+        class="voice-agent__button voice-agent__button--mic"
+        [class.voice-agent__button--active]="isListening"
+        [disabled]="!isMicSupported"
+        (click)="toggleMic()"
+        aria-label="Toggle microphone">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.8"
+          stroke="currentColor"
+          aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 18.75a6.75 6.75 0 006.75-6.75v-.75m-13.5 0V12A6.75 6.75 0 0012 18.75m0 0v3.75m-4.5 0h9" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" />
+        </svg>
+        <span>{{ isListening ? 'Stop Mic' : 'Mic' }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="voice-agent__button voice-agent__button--play"
+        [disabled]="!isSpeechSupported"
+        [class.voice-agent__button--active]="isSpeaking && !isPaused"
+        (click)="togglePlayback()"
+        aria-label="Toggle playback">
+        @if (isSpeaking && !isPaused) {
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.8"
+            stroke="currentColor"
+            aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M10.5 6.75v10.5m3-10.5v10.5" />
+          </svg>
+        } @else {
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.8"
+            stroke="currentColor"
+            aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M5.25 5.653c0-1.427 1.529-2.33 2.779-1.643l9.53 5.236c1.295.712 1.295 2.574 0 3.286l-9.53 5.236c-1.25.687-2.779-.216-2.779-1.643V5.653z" />
+          </svg>
+        }
+        <span>{{ playbackLabel }}</span>
+      </button>
+    </div>
+
+    <div class="voice-agent__hint">{{ micStatusText }}</div>
+  }
+</div>

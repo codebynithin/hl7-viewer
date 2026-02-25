@@ -70,6 +70,15 @@ export class TutorialService {
       highlightPadding: 12,
     },
     {
+      id: 'voice-agent',
+      title: 'Voice Agent Guide',
+      description:
+        'Use the voice agent in the bottom-left to hear segment explanations. Click a line to generate audio, use play/pause controls, and use the icon in the header to minimize or restore the agent.',
+      targetSelector: 'app-voice-agent .voice-agent',
+      position: TutorialPosition.Right,
+      highlightPadding: 10,
+    },
+    {
       id: 'copy',
       title: 'Copy to Clipboard',
       description:
