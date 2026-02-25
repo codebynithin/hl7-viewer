@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Female voice agent avatar">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f4964" />
+      <stop offset="1" stop-color="#1e2837" />
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd7be" />
+      <stop offset="1" stop-color="#f2b991" />
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2d1e1a" />
+      <stop offset="1" stop-color="#18100d" />
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="240" height="240" rx="120" fill="url(#bg)" />
+
+  <path
+    d="M56 140c0-56 28-88 64-88s64 32 64 88v34H56z"
+    fill="url(#hair)"
+    opacity="0.96" />
+
+  <ellipse cx="120" cy="110" rx="58" ry="64" fill="url(#skin)" />
+
+  <path
+    d="M63 136c0-42 23-88 57-88 28 0 49 22 57 57-12-9-21-15-38-15-22 0-33 11-52 23-7 5-15 11-24 23z"
+    fill="url(#hair)" />
+
+  <ellipse cx="95" cy="112" rx="8" ry="7" fill="#2c1e1b" />
+  <ellipse cx="145" cy="112" rx="8" ry="7" fill="#2c1e1b" />
+  <ellipse cx="95" cy="110" rx="2" ry="2" fill="#fff" opacity="0.85" />
+  <ellipse cx="145" cy="110" rx="2" ry="2" fill="#fff" opacity="0.85" />
+
+  <path d="M89 93c7-8 22-10 30-3" stroke="#2c1e1b" stroke-width="4" stroke-linecap="round" fill="none" />
+  <path d="M124 90c8-7 23-6 31 3" stroke="#2c1e1b" stroke-width="4" stroke-linecap="round" fill="none" />
+
+  <path d="M120 120c5 9 6 17 3 25" stroke="#de9f78" stroke-width="4" stroke-linecap="round" fill="none" />
+
+  <path
+    d="M98 155c13 10 30 11 44 0"
+    stroke="#b44c70"
+    stroke-width="5"
+    stroke-linecap="round"
+    fill="none" />
+
+  <circle cx="73" cy="135" r="8" fill="#f2b991" />
+  <circle cx="167" cy="135" r="8" fill="#f2b991" />
+
+  <path d="M86 195c9-11 22-17 34-17 14 0 26 6 34 17" stroke="#f7c7a3" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.95" />
+
+  <circle cx="56" cy="88" r="10" fill="#4ac8f0" opacity="0.65" />
+  <circle cx="188" cy="70" r="6" fill="#4ac8f0" opacity="0.5" />
+</svg>
