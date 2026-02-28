@@ -1,39 +1,60 @@
 @if (isActive) {
-  <div class="tutorial-overlay">
+  <!-- Full-screen overlay wrapper (pointer-events-none so backdrop handles clicks) -->
+  <div class="fixed inset-0 z-[9999] pointer-events-none">
     <!-- Backdrop -->
-    <div class="tutorial-backdrop"></div>
+    <div
+      class="fixed inset-0 bg-black/20 [animation:fadeIn_0.3s_ease-out] pointer-events-auto"></div>
 
-    <!-- Highlight box -->
+    <!-- Highlight box around the targeted element -->
     @if (highlightRect) {
-      <div class="tutorial-highlight" [ngStyle]="getHighlightStyle()"></div>
+      <div
+        class="tutorial-highlight absolute rounded-lg [border:3px_solid_var(--color-accent)] [animation:pulse_2s_ease-in-out_infinite] z-[10000]"
+        [ngStyle]="getHighlightStyle()"></div>
     }
 
-    <!-- Tooltip -->
-    <div class="tutorial-tooltip" [ngStyle]="getTooltipStyle()">
-      <div class="tutorial-content">
-        <div class="tutorial-header">
-          <h3 class="tutorial-title">{{ currentStep?.title }}</h3>
-          <div class="tutorial-progress">
+    <!-- Tooltip card -->
+    <div
+      class="absolute [background:var(--color-surface)] [border:1px_solid_var(--color-border)] rounded-xl [box-shadow:0_10px_40px_rgba(0,0,0,0.3),0_0_0_1px_rgba(30,184,224,0.1)] max-w-[480px] w-[90vw] z-[10001] pointer-events-auto [animation:slideIn_0.3s_ease-out] sm:max-w-[480px]"
+      [ngStyle]="getTooltipStyle()">
+      <!-- Content -->
+      <div class="p-6 sm:p-6 p-5">
+        <!-- Header row -->
+        <div class="flex justify-between items-start gap-3 mb-4">
+          <h3
+            class="font-syne text-[18px] sm:text-[18px] text-[16px] font-bold [color:var(--color-text-bright)] m-0 leading-snug">
+            {{ currentStep?.title }}
+          </h3>
+          <span
+            class="text-[11px] font-semibold [color:var(--color-accent)] bg-[rgba(30,184,224,0.1)] px-2.5 py-1 rounded-xl whitespace-nowrap shrink-0">
             Step {{ currentStepIndex + 1 }} of {{ totalSteps }}
-          </div>
+          </span>
         </div>
 
-        <p class="tutorial-description">{{ currentStep?.description }}</p>
+        <!-- Description -->
+        <p
+          class="text-[14px] sm:text-[14px] text-[13px] leading-relaxed [color:var(--color-text)] mb-6 m-0">
+          {{ currentStep?.description }}
+        </p>
 
-        <div class="tutorial-actions">
+        <!-- Actions row -->
+        <div
+          class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 sm:gap-3">
+          <!-- Skip button -->
           <button
-            (click)="onSkip()"
-            class="tutorial-btn tutorial-btn-secondary"
-            type="button">
+            type="button"
+            class="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-[13px] font-semibold border [border-color:var(--color-border)] bg-transparent [color:var(--color-text-dim)] cursor-pointer transition-all duration-200 hover:translate-y-[-1px] active:translate-y-0 hover:[background:var(--color-surface2)] hover:[color:var(--color-text)] hover:[border-color:var(--color-text-dim)] whitespace-nowrap"
+            (click)="onSkip()">
             Skip Tour
           </button>
 
-          <div class="tutorial-nav">
+          <!-- Prev / Next nav -->
+          <div
+            class="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
             @if (!isFirstStep()) {
               <button
-                (click)="onPrevious()"
-                class="tutorial-btn tutorial-btn-secondary"
-                type="button">
+                type="button"
+                class="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-[13px] font-semibold border [border-color:var(--color-border)] bg-transparent [color:var(--color-text-dim)] cursor-pointer transition-all duration-200 hover:translate-y-[-1px] active:translate-y-0 hover:[background:var(--color-surface2)] hover:[color:var(--color-text)] hover:[border-color:var(--color-text-dim)] whitespace-nowrap"
+                (click)="onPrevious()">
                 <svg
                   class="w-4 h-4"
                   fill="none"
@@ -51,9 +72,9 @@
 
             @if (isLastStep()) {
               <button
-                (click)="onComplete()"
-                class="tutorial-btn tutorial-btn-primary"
-                type="button">
+                type="button"
+                class="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-[13px] font-semibold border-none [background:var(--color-accent)] text-white cursor-pointer transition-all duration-200 hover:translate-y-[-1px] active:translate-y-0 hover:[background:var(--color-accent-hover)] hover:[box-shadow:0_4px_12px_var(--color-accent-hover-shadow)] whitespace-nowrap"
+                (click)="onComplete()">
                 Get Started
                 <svg
                   class="w-4 h-4"
@@ -69,9 +90,9 @@
               </button>
             } @else {
               <button
-                (click)="onNext()"
-                class="tutorial-btn tutorial-btn-primary"
-                type="button">
+                type="button"
+                class="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-[13px] font-semibold border-none [background:var(--color-accent)] text-white cursor-pointer transition-all duration-200 hover:translate-y-[-1px] active:translate-y-0 hover:[background:var(--color-accent-hover)] hover:[box-shadow:0_4px_12px_var(--color-accent-hover-shadow)] whitespace-nowrap"
+                (click)="onNext()">
                 Next
                 <svg
                   class="w-4 h-4"

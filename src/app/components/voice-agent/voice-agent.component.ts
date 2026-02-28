@@ -8,38 +8,11 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { Hl7ParserService } from '../../services/hl7-parser.service';
-
-interface VoiceRecognitionAlternative {
-  transcript: string;
-}
-
-interface VoiceRecognitionResult {
-  length: number;
-  isFinal: boolean;
-  [index: number]: VoiceRecognitionAlternative;
-}
-
-interface VoiceRecognitionResultList {
-  length: number;
-  [index: number]: VoiceRecognitionResult;
-}
-
-interface VoiceRecognitionEventLike extends Event {
-  results: VoiceRecognitionResultList;
-}
-
-interface VoiceRecognitionLike {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: ((event: VoiceRecognitionEventLike) => void) | null;
-  onerror: ((event: Event) => void) | null;
-  onend: (() => void) | null;
-  start(): void;
-  stop(): void;
-}
-
-type VoiceRecognitionConstructor = new () => VoiceRecognitionLike;
+import {
+  VoiceRecognitionConstructor,
+  VoiceRecognitionEventLike,
+  VoiceRecognitionLike,
+} from './voice-recognition.types';
 
 @Component({
   selector: 'app-voice-agent',
@@ -48,13 +21,11 @@ type VoiceRecognitionConstructor = new () => VoiceRecognitionLike;
   styleUrl: './voice-agent.component.scss',
 })
 export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() hasMessage = false;
   public isSpeechSupported = false;
   public isMicSupported = false;
   public isListening = false;
   public isSpeaking = false;
   public isPaused = false;
-  public isCollapsed = true;
   public statusText =
     'Paste or upload an HL7 message to enable voice guidance.';
   public micStatusText = 'Mic is not available in this browser.';
@@ -62,16 +33,14 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
   public lastCommand = '';
   private recognition: VoiceRecognitionLike | null = null;
   private lastNarration = '';
-  private userMinimized = false;
   private activeUtteranceId = 0;
   private playbackMonitorId: number | null = null;
   private readonly maxFieldsToExplain = 8;
+  @Input() hasMessage = false;
 
   constructor(private hl7Parser: Hl7ParserService) {}
 
   ngOnInit(): void {
-    this.syncCollapsedState();
-
     if (typeof window === 'undefined') {
       return;
     }
@@ -106,14 +75,12 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['hasMessage']) {
-      this.syncCollapsedState();
+      this.onHasMessageChange();
     }
   }
 
   public explainLine(lineContent: string, lineIndex: number): void {
     if (!this.hasMessage) {
-      this.syncCollapsedState();
-
       return;
     }
 
@@ -210,31 +177,13 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
     return 'Play';
   }
 
-  public get collapseToggleLabel(): string {
+  private onHasMessageChange(): void {
     if (!this.hasMessage) {
-      return 'Minimize';
-    }
-
-    return this.isCollapsed ? 'Restore' : 'Minimize';
-  }
-
-  public toggleMinimize(): void {
-    if (!this.hasMessage) {
-      return;
-    }
-
-    this.userMinimized = !this.userMinimized;
-    this.syncCollapsedState();
-  }
-
-  private syncCollapsedState(): void {
-    if (!this.hasMessage) {
-      this.userMinimized = false;
-      this.isCollapsed = true;
       this.activeLineNumber = null;
       this.lastCommand = '';
       this.lastNarration = '';
       this.activeUtteranceId += 1;
+
       this.stopPlaybackMonitor();
 
       if (typeof window !== 'undefined' && this.isSpeechSupported) {
@@ -258,12 +207,8 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.isCollapsed = this.userMinimized;
-
     if (!this.isSpeaking) {
-      this.statusText = this.isCollapsed
-        ? 'Voice agent minimized.'
-        : 'Click a line to hear a segment explanation.';
+      this.statusText = 'Click a line to hear a segment explanation.';
     }
 
     if (this.isMicSupported) {
@@ -404,6 +349,7 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.activeUtteranceId += 1;
+
     this.stopPlaybackMonitor();
     window.speechSynthesis.cancel();
 
@@ -420,8 +366,8 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
 
     this.stopPlaybackMonitor();
     window.speechSynthesis.cancel();
-    const utteranceId = ++this.activeUtteranceId;
 
+    const utteranceId = ++this.activeUtteranceId;
     const utterance = new SpeechSynthesisUtterance(text);
 
     utterance.lang = 'en-US';
@@ -435,6 +381,7 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
 
       this.isSpeaking = true;
       this.isPaused = false;
+
       this.startPlaybackMonitor(utteranceId);
     };
 
@@ -640,6 +587,7 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.stopPlaybackMonitor();
+
     this.playbackMonitorId = window.setInterval(() => {
       if (utteranceId !== this.activeUtteranceId) {
         this.stopPlaybackMonitor();
@@ -664,6 +612,7 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     window.clearInterval(this.playbackMonitorId);
+
     this.playbackMonitorId = null;
   }
 
@@ -673,6 +622,7 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.stopPlaybackMonitor();
+
     this.isSpeaking = false;
     this.isPaused = false;
     this.statusText = statusText;

@@ -25,6 +25,11 @@
   --input-border: #1e2530;
   --input-border-error: #ff6b35;
   --input-focus-bg: rgba(30, 184, 224, 0.05);
+  /* Semantic error colours */
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.08);
+  --color-accent-hover: #17a2c8;
+  --color-accent-hover-shadow: rgba(30, 184, 224, 0.3);
 }
 
 /* Light Mode */
@@ -45,6 +50,11 @@ body.light-mode {
   --input-border: #d1d5db;
   --input-border-error: #ff6b35;
   --input-focus-bg: rgba(8, 145, 178, 0.05);
+  /* Semantic error colours (same across themes) */
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.08);
+  --color-accent-hover: #0e8fad;
+  --color-accent-hover-shadow: rgba(8, 145, 178, 0.3);
 }
 
 /* Base Styles */
@@ -189,6 +199,24 @@ body {
 }
 
 .field-error {
-  color: #ef4444 !important;
-  text-decoration: underline wavy #ef4444;
+  color: var(--color-error) !important;
+  text-decoration: underline wavy var(--color-error);
+}
+
+/* ── Segment-detail field error states ─────────────────────────── */
+.input-error {
+  border-color: var(--input-border-error) !important;
+  background-color: var(--color-error-bg) !important;
+  color: var(--input-border-error) !important;
+}
+
+.label-error {
+  color: var(--input-border-error) !important;
+}
+
+.error-message {
+  color: var(--input-border-error);
+  font-size: 9px;
+  margin-top: 4px;
+  display: block;
 }

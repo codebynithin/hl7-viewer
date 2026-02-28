@@ -1,4 +1,6 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { SwUpdate } from '@angular/service-worker';
 
 import { HeaderComponent } from './components/header/header.component';
 import { MessageEditorComponent } from './components/message-editor/message-editor.component';
@@ -21,25 +23,62 @@ import { TutorialService } from './services/tutorial.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
-  constructor(private tutorialService: TutorialService) {}
+export class AppComponent implements OnInit, OnDestroy {
+  constructor(
+    private tutorialService: TutorialService,
+    private swUpdate: SwUpdate
+  ) {}
   @ViewChild(MessageEditorComponent) messageEditor!: MessageEditorComponent;
   @ViewChild(VoiceAgentComponent) voiceAgent?: VoiceAgentComponent;
 
   public selectedLineContent = '';
   public selectedLineIndex = -1;
   public hl7Message = '';
+  private updateSub: Subscription | null = null;
+  private tutorialTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   public get hasHl7Content(): boolean {
     return this.hl7Message.trim().length > 0;
   }
 
   ngOnInit(): void {
+    this.checkForAppUpdate();
+
     if (this.tutorialService.shouldShowTutorial()) {
-      setTimeout(() => {
+      this.tutorialTimeoutId = setTimeout(() => {
         this.tutorialService.startTutorial();
+
+        this.tutorialTimeoutId = null;
       }, 500);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.updateSub?.unsubscribe();
+
+    if (this.tutorialTimeoutId !== null) {
+      clearTimeout(this.tutorialTimeoutId);
+
+      this.tutorialTimeoutId = null;
+    }
+  }
+
+  private checkForAppUpdate(): void {
+    if (!this.swUpdate.isEnabled) {
+      return;
+    }
+
+    // When the service worker finds a new version, reload immediately
+    this.updateSub = this.swUpdate.versionUpdates.subscribe(event => {
+      if (event.type === 'VERSION_READY') {
+        window.location.reload();
+      }
+    });
+
+    // Proactively ask the SW to check for a new version now
+    this.swUpdate.checkForUpdate().catch(() => {
+      // ignore – no network or SW not active
+    });
   }
 
   public onLineSelected(event: {
