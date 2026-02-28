@@ -1,3 +1,160 @@
+<!-- ── Confirmation card (anchored above the pill) ──────────────────────── -->
+@if (pendingUpdate) {
+  <div
+    class="voice-confirm-card pointer-events-auto"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Confirm voice field update">
+    <!-- Header -->
+    <div class="voice-confirm-card__header">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="2"
+        stroke="currentColor"
+        class="w-[13px] h-[13px] shrink-0"
+        aria-hidden="true">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 18.75a6.75 6.75 0 006.75-6.75v-.75m-13.5 0V12A6.75 6.75 0 0012 18.75m0 0v3.75m-4.5 0h9" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" />
+      </svg>
+      <span>Confirm Voice Update</span>
+    </div>
+
+    <!-- Change summary -->
+    <div class="voice-confirm-card__body">
+      <div class="voice-confirm-card__field-id">
+        {{ pendingUpdate.segmentName }}-{{ pendingUpdate.fieldIndex }}
+      </div>
+      <div class="voice-confirm-card__field-label">
+        {{ pendingUpdate.fieldLabel }}
+      </div>
+      <div class="voice-confirm-card__arrow" aria-hidden="true">→</div>
+      <div class="voice-confirm-card__new-value">
+        "{{ pendingUpdate.newValue }}"
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="voice-confirm-card__actions">
+      <button
+        id="voice-confirm-yes-btn"
+        type="button"
+        class="voice-confirm-card__btn voice-confirm-card__btn--confirm"
+        (click)="confirmUpdate()"
+        aria-label="Confirm the update">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2.5"
+          stroke="currentColor"
+          class="w-[11px] h-[11px]"
+          aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+        Yes, apply
+      </button>
+      <button
+        id="voice-confirm-no-btn"
+        type="button"
+        class="voice-confirm-card__btn voice-confirm-card__btn--cancel"
+        (click)="cancelUpdate()"
+        aria-label="Cancel the update">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2.5"
+          stroke="currentColor"
+          class="w-[11px] h-[11px]"
+          aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Cancel
+      </button>
+    </div>
+
+    <!-- Hint -->
+    <p class="voice-confirm-card__hint">
+      Say <strong>"yes"</strong> or <strong>"no"</strong> to respond by voice
+    </p>
+  </div>
+}
+
+<!-- ── Listening panel (shown above the pill when mic is active) ──────────── -->
+@if (isListening || lastCommand) {
+  <div
+    class="voice-listen-panel pointer-events-none"
+    [class.voice-listen-panel--active]="isListening"
+    role="status"
+    aria-live="polite">
+    <!-- Header row: indicator + label -->
+    <div class="voice-listen-panel__header">
+      @if (isListening) {
+        <!-- Animated waveform bars -->
+        <div class="voice-listen-panel__waves" aria-hidden="true">
+          <span class="voice-listen-panel__bar"></span>
+          <span class="voice-listen-panel__bar"></span>
+          <span class="voice-listen-panel__bar"></span>
+          <span class="voice-listen-panel__bar"></span>
+          <span class="voice-listen-panel__bar"></span>
+        </div>
+        <span class="voice-listen-panel__label">Listening</span>
+      } @else {
+        <!-- Static dot when not listening but showing last command -->
+        <span class="voice-listen-panel__static-dot" aria-hidden="true"></span>
+        <span class="voice-listen-panel__label voice-listen-panel__label--idle"
+          >Last command</span
+        >
+      }
+    </div>
+
+    <!-- Live interim transcript (streaming while user speaks) -->
+    @if (interimTranscript) {
+      <div class="voice-listen-panel__interim" aria-label="Hearing">
+        <span
+          class="voice-listen-panel__interim-cursor"
+          aria-hidden="true"></span>
+        <span class="voice-listen-panel__interim-text"
+          >"{{ interimTranscript }}"</span
+        >
+      </div>
+    }
+
+    <!-- Committed command -->
+    @if (lastCommand && !interimTranscript) {
+      <div class="voice-listen-panel__command" aria-label="Command received">
+        <span class="voice-listen-panel__command-icon" aria-hidden="true"
+          >›</span
+        >
+        <span class="voice-listen-panel__command-text"
+          >"{{ lastCommand }}"</span
+        >
+      </div>
+    }
+
+    <!-- Hint text -->
+    @if (isListening && !pendingUpdate) {
+      <div class="voice-listen-panel__hint">
+        Try: <em>"set PV1.2 to I"</em> or <em>"update MSH.9 to ADT A01"</em>
+      </div>
+    }
+  </div>
+}
+
 <!-- Fixed pill anchored bottom-left via :host in SCSS -->
 <div
   class="voice-agent pointer-events-auto inline-flex items-center gap-[10px] rounded-full pl-3 [border:1px_solid_color-mix(in_srgb,var(--color-border)_86%,var(--color-accent)_14%)] [background:linear-gradient(145deg,color-mix(in_srgb,var(--color-surface2)_92%,#0d151f_8%),color-mix(in_srgb,var(--color-surface)_94%,#05080d_6%))] [box-shadow:0_8px_24px_rgba(0,0,0,0.38),0_0_0_1px_rgba(30,184,224,0.08)]"
@@ -14,15 +171,18 @@
 
   <!-- Action buttons -->
   <div class="flex items-center gap-[6px]">
-    <!-- Mic button — Under Construction -->
+    <!-- Mic button -->
     <div class="relative group">
       <button
+        id="voice-agent-mic-btn"
         type="button"
-        class="voice-agent__button inline-flex items-center justify-center rounded-full w-[30px] h-[30px] shrink-0 cursor-not-allowed [border:1px_solid_var(--color-border)] [background:color-mix(in_srgb,var(--color-surface)_88%,#0f1722_12%)] [color:var(--color-text-dim)] opacity-50"
+        class="voice-agent__button voice-agent__button--mic inline-flex items-center justify-center rounded-full w-[30px] h-[30px] shrink-0 [border:1px_solid_var(--color-border)] [background:color-mix(in_srgb,var(--color-surface)_88%,#0f1722_12%)] [color:var(--color-text-dim)] transition-[border-color,background-color,box-shadow,color] duration-200 ease-in-out disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer"
         [class.voice-agent__button--active]="isListening"
-        [class.voice-agent__button--mic]="true"
-        disabled
-        aria-label="Microphone — under construction">
+        [class.voice-agent__button--mic-pulse]="isListening"
+        [disabled]="!isMicSupported"
+        (click)="toggleMic()"
+        [attr.aria-label]="isListening ? 'Stop microphone' : 'Start microphone'"
+        [attr.aria-pressed]="isListening">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -42,24 +202,27 @@
         </svg>
       </button>
 
-      <!-- Under Construction tooltip -->
-      <div
-        class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[180px] opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
-        <div class="relative flex flex-col items-center">
-          <div
-            class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold tracking-wide whitespace-nowrap [background:color-mix(in_srgb,var(--color-surface2)_95%,#0d151f_5%)] [border:1px_solid_color-mix(in_srgb,var(--color-border)_80%,var(--color-accent)_20%)] [color:var(--color-text-dim)] [box-shadow:0_4px_12px_rgba(0,0,0,0.4)]">
-            <span>Under Construction</span>
+      <!-- Mic tooltip -->
+      @if (!isMicSupported) {
+        <div
+          class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[180px] opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
+          <div class="relative flex flex-col items-center">
+            <div
+              class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold tracking-wide whitespace-nowrap [background:color-mix(in_srgb,var(--color-surface2)_95%,#0d151f_5%)] [border:1px_solid_color-mix(in_srgb,var(--color-border)_80%,var(--color-accent)_20%)] [color:var(--color-text-dim)] [box-shadow:0_4px_12px_rgba(0,0,0,0.4)]">
+              <span>Not supported in this browser</span>
+            </div>
+            <!-- Arrow -->
+            <div
+              class="w-0 h-0 [border-left:5px_solid_transparent] [border-right:5px_solid_transparent] [border-top:5px_solid_color-mix(in_srgb,var(--color-border)_80%,var(--color-accent)_20%)]"></div>
           </div>
-          <!-- Arrow -->
-          <div
-            class="w-0 h-0 [border-left:5px_solid_transparent] [border-right:5px_solid_transparent] [border-top:5px_solid_color-mix(in_srgb,var(--color-border)_80%,var(--color-accent)_20%)]"></div>
         </div>
-      </div>
+      }
     </div>
 
     <!-- Play / Pause button -->
     <div class="relative group">
       <button
+        id="voice-agent-play-btn"
         type="button"
         class="voice-agent__button inline-flex items-center justify-center rounded-full w-[30px] h-[30px] shrink-0 cursor-pointer [border:1px_solid_var(--color-border)] [background:color-mix(in_srgb,var(--color-surface)_88%,#0f1722_12%)] [color:var(--color-text-bright)] transition-[border-color,background-color,box-shadow] duration-200 ease-in-out disabled:opacity-45 disabled:cursor-not-allowed"
         [disabled]="!isSpeechSupported || activeLineNumber === null"

@@ -23,4 +23,7 @@
 
 <app-tutorial></app-tutorial>
 
-<app-voice-agent [hasMessage]="hasHl7Content"></app-voice-agent>
+<app-voice-agent
+  [hasMessage]="hasHl7Content"
+  [hl7Message]="hl7Message"
+  (applyFieldUpdate)="onVoiceFieldUpdate($event)"></app-voice-agent>

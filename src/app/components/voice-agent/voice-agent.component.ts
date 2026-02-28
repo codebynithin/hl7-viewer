@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  EventEmitter,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
+  Output,
   SimpleChanges,
 } from '@angular/core';
 import { Hl7ParserService } from '../../services/hl7-parser.service';
@@ -13,6 +16,16 @@ import {
   VoiceRecognitionEventLike,
   VoiceRecognitionLike,
 } from './voice-recognition.types';
+
+export interface VoiceFieldUpdate {
+  segmentName: string;
+  fieldIndex: number; // 1-based HL7 field number
+  newValue: string;
+  lineIndex: number; // 0-based line index in the HL7 message
+  fieldLabel: string;
+}
+
+type CommandState = 'idle' | 'awaiting_confirmation';
 
 @Component({
   selector: 'app-voice-agent',
@@ -31,14 +44,24 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
   public micStatusText = 'Mic is not available in this browser.';
   public activeLineNumber: number | null = null;
   public lastCommand = '';
+  /** Live interim transcript shown while the user is still speaking. */
+  public interimTranscript = '';
+  /** Pending update waiting for user confirmation. */
+  public pendingUpdate: VoiceFieldUpdate | null = null;
   private recognition: VoiceRecognitionLike | null = null;
   private lastNarration = '';
   private activeUtteranceId = 0;
   private playbackMonitorId: number | null = null;
+  private commandState: CommandState = 'idle';
   private readonly maxFieldsToExplain = 8;
   @Input() hasMessage = false;
+  @Input() hl7Message = '';
+  @Output() applyFieldUpdate = new EventEmitter<VoiceFieldUpdate>();
 
-  constructor(private hl7Parser: Hl7ParserService) {}
+  constructor(
+    private hl7Parser: Hl7ParserService,
+    private zone: NgZone
+  ) {}
 
   ngOnInit(): void {
     if (typeof window === 'undefined') {
@@ -51,7 +74,8 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
     this.setupMicRecognition();
 
     if (this.isMicSupported) {
-      this.micStatusText = 'Mic ready. Say: play, pause, repeat, or stop.';
+      this.micStatusText =
+        'Mic ready. Say: "set PV1.2 to 123", play, pause, or stop.';
     }
 
     if (!this.isSpeechSupported) {
@@ -149,9 +173,11 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
 
     if (this.isListening) {
       this.isListening = false;
+      this.commandState = 'idle';
+      this.pendingUpdate = null;
+      this.interimTranscript = '';
 
       this.recognition.stop();
-
       this.micStatusText = 'Mic stopped.';
 
       return;
@@ -161,12 +187,41 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
       this.recognition.start();
 
       this.isListening = true;
-      this.micStatusText = 'Listening... say play, pause, repeat, or stop.';
+      this.micStatusText =
+        'Listening... say "set PV1.2 to 123", play, pause, or stop.';
     } catch {
       this.isListening = false;
       this.micStatusText =
         'Unable to start mic. Please check browser permission.';
     }
+  }
+
+  /** Confirm the pending update (called from UI confirm button). */
+  public confirmUpdate(): void {
+    if (!this.pendingUpdate) return;
+
+    const update = this.pendingUpdate;
+
+    this.applyFieldUpdate.emit(update);
+
+    this.pendingUpdate = null;
+    this.commandState = 'idle';
+    this.micStatusText = `Updated ${update.segmentName}-${update.fieldIndex} to "${update.newValue}".`;
+    this.statusText = `✓ ${update.segmentName}-${update.fieldIndex} updated to "${update.newValue}".`;
+
+    this.speak(
+      `Done. ${update.segmentName} field ${update.fieldIndex}, ${update.fieldLabel}, has been updated to ${update.newValue}.`
+    );
+  }
+
+  /** Cancel the pending update (called from UI cancel button). */
+  public cancelUpdate(): void {
+    this.pendingUpdate = null;
+    this.commandState = 'idle';
+    this.micStatusText =
+      'Update cancelled. Say a new command or say "stop" to stop.';
+
+    this.speak('Update cancelled.');
   }
 
   public get playbackLabel(): string {
@@ -183,6 +238,8 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
       this.lastCommand = '';
       this.lastNarration = '';
       this.activeUtteranceId += 1;
+      this.pendingUpdate = null;
+      this.commandState = 'idle';
 
       this.stopPlaybackMonitor();
 
@@ -201,7 +258,8 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
         'Paste or upload an HL7 message to enable voice guidance.';
 
       if (this.isMicSupported) {
-        this.micStatusText = 'Mic ready. Say: play, pause, repeat, or stop.';
+        this.micStatusText =
+          'Mic ready. Say: "set PV1.2 to 123", play, pause, or stop.';
       }
 
       return;
@@ -212,7 +270,8 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if (this.isMicSupported) {
-      this.micStatusText = 'Mic ready. Say: play, pause, repeat, or stop.';
+      this.micStatusText =
+        'Mic ready. Say: "set PV1.2 to 123", play, pause, or stop.';
     }
   }
 
@@ -227,23 +286,29 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
 
     this.recognition = new recognitionCtor();
     this.recognition.continuous = true;
-    this.recognition.interimResults = false;
+    this.recognition.interimResults = true;
     this.recognition.lang = 'en-US';
 
     this.recognition.onresult = event => {
-      this.handleVoiceResult(event);
+      this.zone.run(() => this.handleVoiceResult(event));
     };
 
     this.recognition.onerror = () => {
-      this.isListening = false;
-      this.micStatusText = 'Mic error. Please try again.';
+      this.zone.run(() => {
+        this.isListening = false;
+        this.interimTranscript = '';
+        this.micStatusText = 'Mic error. Please try again.';
+      });
     };
 
     this.recognition.onend = () => {
-      this.isListening = false;
+      this.zone.run(() => {
+        this.isListening = false;
+        this.interimTranscript = '';
+      });
     };
 
-    // this.isMicSupported = true; // disabled for now
+    this.isMicSupported = true;
   }
 
   private getRecognitionConstructor(): VoiceRecognitionConstructor | null {
@@ -270,14 +335,31 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    const transcript = latestResult[0].transcript.toLowerCase().trim();
+    const rawTranscript = latestResult[0].transcript.trim();
+    const transcript = rawTranscript.toLowerCase();
 
     if (!transcript) {
       return;
     }
 
-    this.lastCommand = transcript;
+    // Stream interim (partial) transcript for live display; only process on final
+    if (!latestResult.isFinal) {
+      this.interimTranscript = rawTranscript;
+      return;
+    }
 
+    // Final result — clear interim and commit
+    this.interimTranscript = '';
+    this.lastCommand = rawTranscript;
+
+    // If we're awaiting confirmation, handle yes/no
+    if (this.commandState === 'awaiting_confirmation') {
+      this.handleConfirmationResponse(transcript);
+
+      return;
+    }
+
+    // Playback controls
     if (transcript.includes('pause')) {
       this.pauseByCommand();
 
@@ -304,7 +386,162 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.micStatusText = 'Unknown command. Say play, pause, repeat, or stop.';
+    // HL7 field update commands
+    const updateResult = this.parseUpdateCommand(transcript);
+
+    if (updateResult) {
+      this.handleParsedUpdate(updateResult);
+
+      return;
+    }
+
+    this.micStatusText =
+      'Unknown command. Say: "set PV1.2 to 123", play, pause, or stop.';
+  }
+
+  /**
+   * Parse voice commands like:
+   *  - "update PV1.2 to 123"
+   *  - "set MSH 9 to ADT A01"
+   *  - "change PV1 field 2 to outpatient"
+   *  - "update PV1 2 to I"
+   */
+  private parseUpdateCommand(
+    transcript: string
+  ): { segmentName: string; fieldNumber: number; newValue: string } | null {
+    // Normalise spoken numbers: "field 2" → "2", "field two" → "2"
+    const wordsToNumbers: { [key: string]: string } = {
+      zero: '0',
+      one: '1',
+      two: '2',
+      three: '3',
+      four: '4',
+      five: '5',
+      six: '6',
+      seven: '7',
+      eight: '8',
+      nine: '9',
+      ten: '10',
+      eleven: '11',
+      twelve: '12',
+      thirteen: '13',
+      fourteen: '14',
+      fifteen: '15',
+      sixteen: '16',
+      seventeen: '17',
+      eighteen: '18',
+      nineteen: '19',
+      twenty: '20',
+    };
+    let normalised = transcript;
+
+    for (const [word, digit] of Object.entries(wordsToNumbers)) {
+      normalised = normalised.replace(new RegExp(`\\b${word}\\b`, 'g'), digit);
+    }
+
+    // Patterns (case-insensitive already; transcript is lowercased)
+    const patterns = [
+      // "set|update|change PV1.2 to <value>"
+      /(?:set|update|change)\s+([A-Za-z]{2}[A-Za-z0-9])[\.\-\s](\d+)\s+to\s+(.+)/i,
+      // "set|update|change PV1 field 2 to <value>"
+      /(?:set|update|change)\s+([A-Za-z]{2}[A-Za-z0-9])\s+field\s+(\d+)\s+to\s+(.+)/i,
+      // "PV1.2 equals|is <value>" (more casual)
+      /([A-Za-z]{2}[A-Za-z0-9])[\.\-](\d+)\s+(?:equals?|is|=)\s+(.+)/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = normalised.match(pattern);
+
+      if (match) {
+        const segmentName = match[1].toUpperCase();
+        const fieldNumber = parseInt(match[2], 10);
+        const newValue = match[3].trim().replace(/\s+/g, ' ');
+
+        if (
+          !isNaN(fieldNumber) &&
+          fieldNumber > 0 &&
+          segmentName.length === 3
+        ) {
+          return { segmentName, fieldNumber, newValue };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private handleParsedUpdate(update: {
+    segmentName: string;
+    fieldNumber: number;
+    newValue: string;
+  }): void {
+    // Find the line index in the current HL7 message
+    const lines = this.hl7Message.split(/\r\n|\r|\n/);
+    const lineIndex = lines.findIndex(l =>
+      l.startsWith(update.segmentName + '|')
+    );
+
+    if (lineIndex === -1) {
+      const msg = `I could not find a ${update.segmentName} segment in the message.`;
+
+      this.micStatusText = msg;
+
+      this.speak(msg);
+
+      return;
+    }
+
+    // Get the field label from HL7 definitions
+    const definition = this.hl7Parser.getSegmentDefinition(update.segmentName);
+    // fieldNumber is 1-based. definition.fields is 0-based (fields[0] = field 1).
+    const fieldLabel =
+      definition.fields[update.fieldNumber - 1] ||
+      `Field ${update.fieldNumber}`;
+    const voiceUpdate: VoiceFieldUpdate = {
+      segmentName: update.segmentName,
+      fieldIndex: update.fieldNumber,
+      newValue: update.newValue,
+      lineIndex,
+      fieldLabel,
+    };
+
+    this.pendingUpdate = voiceUpdate;
+    this.commandState = 'awaiting_confirmation';
+
+    const confirmationText = `I heard: set ${update.segmentName} field ${update.fieldNumber}, ${fieldLabel}, to "${update.newValue}". Say "yes" to confirm, or "no" to cancel.`;
+
+    this.micStatusText = confirmationText;
+    this.statusText = `Pending: ${update.segmentName}-${update.fieldNumber} → "${update.newValue}"`;
+
+    this.speak(confirmationText);
+  }
+
+  private handleConfirmationResponse(transcript: string): void {
+    if (
+      transcript.includes('yes') ||
+      transcript.includes('confirm') ||
+      transcript.includes('okay') ||
+      transcript.includes('ok') ||
+      transcript.includes('do it') ||
+      transcript.includes('apply')
+    ) {
+      this.confirmUpdate();
+
+      return;
+    }
+
+    if (
+      transcript.includes('no') ||
+      transcript.includes('cancel') ||
+      transcript.includes('abort') ||
+      transcript.includes('stop')
+    ) {
+      this.cancelUpdate();
+
+      return;
+    }
+
+    this.speak('Please say "yes" to confirm the update, or "no" to cancel.');
   }
 
   private playByCommand(): void {
@@ -404,7 +641,9 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
     utterance.onend = () => {
       this.finalizePlayback(
         utteranceId,
-        'Explanation complete. Click another line to continue.'
+        this.commandState === 'awaiting_confirmation'
+          ? 'Say "yes" to confirm or "no" to cancel.'
+          : 'Explanation complete. Click another line to continue.'
       );
     };
 
@@ -600,7 +839,9 @@ export class VoiceAgentComponent implements OnInit, OnChanges, OnDestroy {
       if (!synth.speaking && !synth.pending && !this.isPaused) {
         this.finalizePlayback(
           utteranceId,
-          'Explanation complete. Click another line to continue.'
+          this.commandState === 'awaiting_confirmation'
+            ? 'Say "yes" to confirm or "no" to cancel.'
+            : 'Explanation complete. Click another line to continue.'
         );
       }
     }, 80);

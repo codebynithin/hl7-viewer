@@ -7,7 +7,10 @@ import { MessageEditorComponent } from './components/message-editor/message-edit
 import { SegmentDetailComponent } from './components/segment-detail/segment-detail.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { TutorialComponent } from './components/tutorial/tutorial.component';
-import { VoiceAgentComponent } from './components/voice-agent/voice-agent.component';
+import {
+  VoiceAgentComponent,
+  VoiceFieldUpdate,
+} from './components/voice-agent/voice-agent.component';
 import { TutorialService } from './services/tutorial.service';
 
 @Component({
@@ -185,5 +188,15 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       }, 0);
     }
+  }
+
+  public onVoiceFieldUpdate(event: VoiceFieldUpdate): void {
+    // fieldIndex is 1-based HL7 field number; onFieldValueChange uses 0-based fieldIndex
+    this.onFieldValueChange({
+      lineIndex: event.lineIndex,
+      fieldIndex: event.fieldIndex - 1,
+      componentIndex: null,
+      newValue: event.newValue,
+    });
   }
 }
