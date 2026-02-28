@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   Output,
   EventEmitter,
   AfterViewInit,
@@ -21,7 +22,9 @@ interface ParsedSegment {
   templateUrl: './message-editor.component.html',
   styleUrl: './message-editor.component.scss',
 })
-export class MessageEditorComponent implements OnInit, AfterViewInit {
+export class MessageEditorComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   public hl7Message = '';
   public lineNumbers: number[] = [];
   public currentLineIndex = -1;
@@ -34,6 +37,7 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
   private readonly lineHeightDesktop = 20;
   private readonly paddingTopMobile = 8;
   private readonly paddingTopDesktop = 14;
+  private readonly resizeHandler = (): void => this.checkMobile();
   @Output() lineSelected = new EventEmitter<{
     lineContent: string;
     lineIndex: number;
@@ -48,7 +52,11 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.checkMobile();
-    window.addEventListener('resize', () => this.checkMobile());
+    window.addEventListener('resize', this.resizeHandler);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('resize', this.resizeHandler);
   }
 
   ngAfterViewInit(): void {
@@ -363,9 +371,10 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
   }
 
   private readHL7File(file: File): void {
-    const reader = new FileReader();
+    let reader: FileReader | null = new FileReader();
+
     reader.onload = () => {
-      const content = reader.result as string;
+      const content = (reader as FileReader).result as string;
 
       this.hl7Message = content;
 
@@ -384,6 +393,9 @@ export class MessageEditorComponent implements OnInit, AfterViewInit {
       if (highlight) {
         highlight.style.display = 'none';
       }
+
+      // Release FileReader reference so the closure doesn't keep it alive
+      reader = null;
     };
 
     reader.readAsText(file);

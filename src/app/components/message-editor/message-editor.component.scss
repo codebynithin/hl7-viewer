@@ -1,9 +1,11 @@
+/* ── Host: message editor fills its grid cell ─────────────────── */
 :host {
   display: block;
   height: 100%;
   width: 100%;
 }
 
+/* ── Placeholder on empty contenteditable ─────────────────────── */
 [contenteditable][data-empty='true']::before {
   content: attr(data-placeholder);
   color: var(--color-text-dim);
@@ -17,10 +19,7 @@
   outline: none;
 }
 
-.text-dim {
-  color: var(--color-text-dim);
-}
-
+/* ── Hover tooltip (fixed-positioned, built in TS) ────────────── */
 .hl7-tooltip {
   position: fixed;
   z-index: 1000;
@@ -71,6 +70,7 @@
   }
 }
 
+/* ── Editor text colour ───────────────────────────────────────── */
 #hl7input {
   color: var(--color-text-dim);
 }
