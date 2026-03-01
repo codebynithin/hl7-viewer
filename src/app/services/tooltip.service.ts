@@ -16,6 +16,12 @@ import type {
 // Re-export so existing consumers importing from this file continue to work.
 export type { TooltipConfig, TooltipPosition, TooltipState };
 
+/** Internal fully-resolved config (template fields stay optional). */
+type MergedConfig = Required<
+  Omit<TooltipConfig, 'template' | 'templateContext'>
+> &
+  Pick<TooltipConfig, 'template' | 'templateContext'>;
+
 @Injectable({ providedIn: 'root' })
 export class TooltipService {
   private readonly appRef = inject(ApplicationRef);
@@ -160,9 +166,11 @@ export class TooltipService {
   // Private helpers
   // ─────────────────────────────────────────────────────────────────────────
 
-  private mergeDefaults(config: TooltipConfig): Required<TooltipConfig> {
+  private mergeDefaults(config: TooltipConfig): MergedConfig {
     return {
       content: config.content,
+      template: config.template,
+      templateContext: config.templateContext,
       position: config.position ?? 'top',
       offset: config.offset ?? 8,
       maxWidth: config.maxWidth ?? 280,
@@ -195,7 +203,7 @@ export class TooltipService {
    */
   private calculatePosition(
     anchor: HTMLElement,
-    config: Required<TooltipConfig>
+    config: MergedConfig
   ): { x: number; y: number; resolvedPosition: TooltipPosition } {
     if (config.position === 'cursor') {
       const offset = config.offset;
@@ -226,7 +234,7 @@ export class TooltipService {
    */
   private calculatePositionFromDOM(
     anchor: HTMLElement,
-    config: Required<TooltipConfig>
+    config: MergedConfig
   ): { x: number; y: number; resolvedPosition: TooltipPosition } | null {
     if (!this.overlayRef) return null;
 
@@ -251,7 +259,7 @@ export class TooltipService {
   /** Core positioning logic parameterised by known tooltip dimensions. */
   private calculatePositionWithSize(
     anchor: HTMLElement,
-    config: Required<TooltipConfig>,
+    config: MergedConfig,
     tipW: number,
     tipH: number
   ): { x: number; y: number; resolvedPosition: TooltipPosition } {

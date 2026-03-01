@@ -6,6 +6,7 @@ import {
   Input,
   OnDestroy,
   OnChanges,
+  TemplateRef,
 } from '@angular/core';
 import {
   TooltipConfig,
@@ -21,6 +22,12 @@ import {
  * **Basic usage**
  * ```html
  * <button tooltip="Save the file">Save</button>
+ * ```
+ *
+ * **Template tooltip**
+ * ```html
+ * <button [tooltipTemplate]="myTpl" [tooltipTemplateContext]="{ label: 'Hello' }">Hover me</button>
+ * <ng-template #myTpl let-ctx>{{ ctx.label }}</ng-template>
  * ```
  *
  * **Configuring position**
@@ -44,7 +51,7 @@ import {
  * ```
  */
 @Directive({
-  selector: '[tooltip]',
+  selector: '[tooltip],[tooltipTemplate]',
   standalone: true,
 })
 export class TooltipDirective implements OnDestroy, OnChanges {
@@ -52,6 +59,18 @@ export class TooltipDirective implements OnDestroy, OnChanges {
 
   /** The tooltip text (aliased as the directive selector for convenience). */
   @Input('tooltip') content = '';
+
+  /**
+   * Optional Angular template to render as the tooltip body.
+   * When provided, `content` (plain text) is ignored.
+   */
+  @Input() tooltipTemplate: TemplateRef<unknown> | null = null;
+
+  /**
+   * Context object passed as `$implicit` to `tooltipTemplate`.
+   * Ignored when `tooltipTemplate` is not set.
+   */
+  @Input() tooltipTemplateContext: unknown = undefined;
 
   /** Placement of the tooltip relative to the host element (default: 'top'). */
   @Input() tooltipPosition: TooltipPosition = 'top';
@@ -102,13 +121,15 @@ export class TooltipDirective implements OnDestroy, OnChanges {
 
   @HostListener('mouseenter', ['$event'])
   onMouseEnter(event: MouseEvent): void {
-    if (this.tooltipDisabled || !this.content) return;
+    if (this.tooltipDisabled || (!this.content && !this.tooltipTemplate))
+      return;
     this.tooltipService.show(this.el.nativeElement, this.buildConfig(), event);
   }
 
   @HostListener('mousemove', ['$event'])
   onMouseMove(event: MouseEvent): void {
-    if (this.tooltipDisabled || !this.content) return;
+    if (this.tooltipDisabled || (!this.content && !this.tooltipTemplate))
+      return;
     if (this.tooltipPosition === 'cursor') {
       this.tooltipService.updatePosition(
         this.el.nativeElement,
@@ -125,7 +146,8 @@ export class TooltipDirective implements OnDestroy, OnChanges {
 
   @HostListener('focus', ['$event'])
   onFocus(event: FocusEvent): void {
-    if (this.tooltipDisabled || !this.content) return;
+    if (this.tooltipDisabled || (!this.content && !this.tooltipTemplate))
+      return;
     this.tooltipService.show(this.el.nativeElement, this.buildConfig());
   }
 
@@ -145,6 +167,8 @@ export class TooltipDirective implements OnDestroy, OnChanges {
   private buildConfig(): TooltipConfig {
     return {
       content: this.content,
+      template: this.tooltipTemplate ?? undefined,
+      templateContext: this.tooltipTemplateContext,
       position: this.tooltipPosition,
       offset: this.tooltipOffset,
       maxWidth: this.tooltipMaxWidth,

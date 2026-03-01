@@ -4,12 +4,13 @@ import {
   Component,
   inject,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import type { TooltipPosition, TooltipState } from './tooltip.types';
 
 @Component({
   selector: 'app-tooltip-overlay',
   standalone: true,
-  imports: [],
+  imports: [NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tooltip-overlay.component.html',
   styleUrl: './tooltip-overlay.component.scss',

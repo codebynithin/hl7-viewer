@@ -92,21 +92,28 @@
       ⚠ First segment should be MSH
     </div>
   }
-  @if (tooltip.visible) {
-    <div
-      class="hl7-tooltip"
-      [style.top.px]="tooltip.y"
-      [style.left.px]="tooltip.x">
-      <div class="tooltip-header">
-        <span class="segment-id">{{ tooltip.segment }}</span>
-        <span class="field-pos">{{ tooltip.position }}</span>
-      </div>
-      <div class="tooltip-label">{{ tooltip.label }}</div>
-      @for (val of tooltip.values; track val) {
-        <div class="tooltip-value" [style.color]="val.isError ? '#ef4444' : ''">
-          {{ val.text }}
-        </div>
-      }
+  <!-- Rich field-tooltip template rendered by TooltipService -->
+  <ng-template #fieldTooltipTpl let-ctx>
+    <div class="tooltip-header flex items-center gap-1.5 mb-1">
+      <span
+        class="segment-id font-bold text-[var(--color-accent,#1eb8e0)] text-[10px] tracking-wide"
+        >{{ ctx.segment }}</span
+      >
+      <span
+        class="field-pos text-[var(--color-text-dim,#6b7a99)] text-[10px]"
+        >{{ ctx.position }}</span
+      >
     </div>
-  }
+    <div
+      class="tooltip-label text-[11px] font-semibold text-[var(--color-text,#c9d6e8)] mb-1.5 border-b border-[rgba(255,255,255,0.08)] pb-1">
+      {{ ctx.label }}
+    </div>
+    @for (val of ctx.values; track val.text) {
+      <div
+        class="tooltip-value text-[10px] leading-relaxed"
+        [style.color]="val.isError ? '#fca5a5' : 'var(--color-text,#c9d6e8)'">
+        {{ val.text }}
+      </div>
+    }
+  </ng-template>
 </div>

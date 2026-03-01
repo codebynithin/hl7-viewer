@@ -5,10 +5,14 @@ import {
   Output,
   EventEmitter,
   AfterViewInit,
+  ViewChild,
+  TemplateRef,
+  inject,
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { Hl7ParserService } from '../../services/hl7-parser.service';
+import { TooltipService } from '../../services/tooltip.service';
 
 interface ParsedSegment {
   segmentName: string;
@@ -25,6 +29,11 @@ interface ParsedSegment {
 export class MessageEditorComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+  @ViewChild('fieldTooltipTpl', { static: true })
+  fieldTooltipTpl!: TemplateRef<unknown>;
+
+  private readonly tooltipService = inject(TooltipService);
+
   public hl7Message = '';
   public lineNumbers: number[] = [];
   public currentLineIndex = -1;
@@ -553,116 +562,99 @@ export class MessageEditorComponent
     return joined;
   }
 
-  // Tooltip state
-  public tooltip = {
-    visible: false,
-    x: 0,
-    y: 0,
-    segment: '',
-    position: '',
-    label: '',
-    values: [] as { text: string; isError: boolean }[],
-  };
+  // ── Tooltip (delegated to TooltipService) ───────────────────────────────
+
+  /** Dynamic data for the current field tooltip template. */
+  public tooltipCtx: {
+    segment: string;
+    position: string;
+    label: string;
+    values: { text: string; isError: boolean }[];
+  } = { segment: '', position: '', label: '', values: [] };
 
   public handleMouseOver(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (target.classList.contains('field-value')) {
-      const fieldId = target.getAttribute('data-position') || '';
-      const rawValue = target.innerText;
+    if (!target.classList.contains('field-value')) return;
 
-      this.tooltip.segment = target.getAttribute('data-segment') || '';
-      this.tooltip.position = fieldId;
-      this.tooltip.label = target.getAttribute('data-label') || '';
+    const fieldId = target.getAttribute('data-position') || '';
+    const rawValue = target.innerText;
 
-      this.tooltip.x = event.clientX + 15;
-      this.tooltip.y = event.clientY + 15;
+    this.tooltipCtx.segment = target.getAttribute('data-segment') || '';
+    this.tooltipCtx.position = fieldId;
+    this.tooltipCtx.label = target.getAttribute('data-label') || '';
 
-      // Parse logic
-      const lines: { text: string; isError: boolean }[] = [];
-      const compDefs = this.hl7Parser.getComponentDefinition(fieldId);
+    // Build value rows
+    const lines: { text: string; isError: boolean }[] = [];
+    const compDefs = this.hl7Parser.getComponentDefinition(fieldId);
+    const repetitions = rawValue.split('~');
 
-      // Split repetitions
-      const repetitions = rawValue.split('~');
+    repetitions.forEach((rep, i) => {
+      if (repetitions.length > 1) {
+        lines.push({ text: `-- Repetition ${i + 1} --`, isError: false });
+      }
 
-      repetitions.forEach((rep, i) => {
-        if (repetitions.length > 1) {
-          lines.push({ text: `-- Repetition ${i + 1} --`, isError: false });
-        }
+      const comps = rep.split('^');
 
-        const comps = rep.split('^');
+      if (comps.length > 1 || (compDefs && compDefs.length > 0)) {
+        comps.forEach((val, j) => {
+          if (!val) return;
 
-        // Show components if multiple or we have definitions
-        if (comps.length > 1 || (compDefs && compDefs.length > 0)) {
-          comps.forEach((val, j) => {
-            if (!val) return;
+          const label = compDefs[j];
+          let text = '';
+          let isError = false;
 
-            const label = compDefs[j];
-            let text = '';
-            let isError = false;
-
-            if (label) {
-              text = `${label}: ${val}`;
-
-              if (
-                this.hl7Parser.isDateField(label) &&
-                !this.hl7Parser.isValidHL7Date(val)
-              ) {
-                isError = true;
-              }
-            } else if (comps.length > 1) {
-              text = `Comp ${j + 1}: ${val}`;
-            } else {
-              text = val;
-            }
-
-            if (text) {
-              lines.push({ text, isError });
-            }
-          });
-        } else {
-          // Simple value
-          if (rep) {
-            let isError = false;
-
+          if (label) {
+            text = `${label}: ${val}`;
             if (
-              this.hl7Parser.isDateField(this.tooltip.label) &&
-              !this.hl7Parser.isValidHL7Date(rep)
+              this.hl7Parser.isDateField(label) &&
+              !this.hl7Parser.isValidHL7Date(val)
             ) {
               isError = true;
             }
-
-            lines.push({ text: rep, isError });
+          } else if (comps.length > 1) {
+            text = `Comp ${j + 1}: ${val}`;
+          } else {
+            text = val;
           }
+
+          if (text) lines.push({ text, isError });
+        });
+      } else if (rep) {
+        let isError = false;
+        if (
+          this.hl7Parser.isDateField(this.tooltipCtx.label) &&
+          !this.hl7Parser.isValidHL7Date(rep)
+        ) {
+          isError = true;
         }
-      });
-
-      // If lines empty (e.g. just separators?), fallback to raw
-      if (lines.length === 0 && rawValue) {
-        lines.push({ text: rawValue, isError: false });
+        lines.push({ text: rep, isError });
       }
+    });
 
-      this.tooltip.values = lines;
-
-      // Adjust if close to right edge
-      if (this.tooltip.x + 300 > window.innerWidth) {
-        this.tooltip.x = event.clientX - 315;
-      }
-
-      // Adjust if tooltip goes below viewport
-      const estHeight = 60 + lines.length * 15;
-
-      if (this.tooltip.y + estHeight > window.innerHeight) {
-        this.tooltip.y = event.clientY - estHeight;
-      }
-
-      this.tooltip.visible = true;
+    if (lines.length === 0 && rawValue) {
+      lines.push({ text: rawValue, isError: false });
     }
+
+    this.tooltipCtx.values = lines;
+
+    this.tooltipService.show(
+      target,
+      {
+        content: '',
+        template: this.fieldTooltipTpl,
+        templateContext: this.tooltipCtx,
+        position: 'cursor',
+        maxWidth: 320,
+        showArrow: false,
+      },
+      event
+    );
   }
 
   public handleMouseOut(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (target.classList.contains('field-value')) {
-      this.tooltip.visible = false;
+      this.tooltipService.hide(0);
     }
   }
 

@@ -1,3 +1,5 @@
+import type { TemplateRef } from '@angular/core';
+
 /**
  * All supported tooltip placement positions.
  * The service will automatically flip to a mirrored position when the
@@ -22,6 +24,18 @@ export type TooltipPosition =
 export interface TooltipConfig {
   /** The text content shown inside the tooltip. */
   content: string;
+  /**
+   * Optional Angular `TemplateRef` to render as the tooltip body.
+   * When provided, `content` is ignored and the template is projected
+   * into the overlay instead. Use `templateContext` to pass data to the
+   * template's implicit `$implicit` binding.
+   */
+  template?: TemplateRef<unknown>;
+  /**
+   * Context object passed as `$implicit` to the `template`.
+   * Ignored when `template` is not set.
+   */
+  templateContext?: unknown;
   /** Preferred placement relative to the anchor element (default: 'top'). */
   position?: TooltipPosition;
   /** Gap in pixels between the tooltip and the anchor edge (default: 8). */
@@ -42,7 +56,13 @@ export interface TooltipConfig {
 }
 
 /** Internal state shared with the overlay component. */
-export interface TooltipState extends Required<TooltipConfig> {
+export interface TooltipState extends Required<
+  Omit<TooltipConfig, 'template' | 'templateContext'>
+> {
+  /** Optional template to render instead of plain `content`. */
+  template?: TemplateRef<unknown>;
+  /** Context passed as `$implicit` to `template`. */
+  templateContext?: unknown;
   visible: boolean;
   /** Resolved absolute left position (px). */
   x: number;

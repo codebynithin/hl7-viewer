@@ -7,7 +7,14 @@
     [style.top.px]="state!.y"
     [style.max-width.px]="state!.maxWidth"
     role="tooltip">
-    <div>{{ state!.content }}</div>
+    @if (state!.template) {
+      <ng-container
+        [ngTemplateOutlet]="state!.template"
+        [ngTemplateOutletContext]="{ $implicit: state!.templateContext }">
+      </ng-container>
+    } @else {
+      <div>{{ state!.content }}</div>
+    }
     @if (state!.showArrow) {
       <div class="hl7-tooltip-overlay__arrow"></div>
     }
