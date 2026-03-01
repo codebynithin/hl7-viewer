@@ -15,7 +15,10 @@
   <!-- Action buttons -->
   <div class="flex items-center gap-[6px]">
     <!-- Mic button — Under Construction -->
-    <div class="relative group">
+    <div
+      class="relative"
+      [tooltip]="'Under Construction'"
+      tooltipPosition="top">
       <button
         type="button"
         class="voice-agent__button inline-flex items-center justify-center rounded-full w-[30px] h-[30px] shrink-0 cursor-not-allowed [border:1px_solid_var(--color-border)] [background:color-mix(in_srgb,var(--color-surface)_88%,#0f1722_12%)] [color:var(--color-text-dim)] opacity-50"
@@ -41,29 +44,24 @@
             d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" />
         </svg>
       </button>
-
-      <!-- Under Construction tooltip -->
-      <div
-        class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[180px] opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
-        <div class="relative flex flex-col items-center">
-          <div
-            class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold tracking-wide whitespace-nowrap [background:color-mix(in_srgb,var(--color-surface2)_95%,#0d151f_5%)] [border:1px_solid_color-mix(in_srgb,var(--color-border)_80%,var(--color-accent)_20%)] [color:var(--color-text-dim)] [box-shadow:0_4px_12px_rgba(0,0,0,0.4)]">
-            <span>Under Construction</span>
-          </div>
-          <!-- Arrow -->
-          <div
-            class="w-0 h-0 [border-left:5px_solid_transparent] [border-right:5px_solid_transparent] [border-top:5px_solid_color-mix(in_srgb,var(--color-border)_80%,var(--color-accent)_20%)]"></div>
-        </div>
-      </div>
     </div>
 
     <!-- Play / Pause button -->
-    <div class="relative group">
+    <div class="relative">
       <button
         type="button"
         class="voice-agent__button inline-flex items-center justify-center rounded-full w-[30px] h-[30px] shrink-0 cursor-pointer [border:1px_solid_var(--color-border)] [background:color-mix(in_srgb,var(--color-surface)_88%,#0f1722_12%)] [color:var(--color-text-bright)] transition-[border-color,background-color,box-shadow] duration-200 ease-in-out disabled:opacity-45 disabled:cursor-not-allowed"
         [disabled]="!isSpeechSupported || activeLineNumber === null"
         [class.voice-agent__button--active]="isSpeaking && !isPaused"
+        [tooltip]="
+          !isSpeechSupported
+            ? 'Not supported in this browser'
+            : activeLineNumber === null
+              ? 'Select a line to enable playback'
+              : ''
+        "
+        tooltipPosition="top"
+        [tooltipDisabled]="isSpeechSupported && activeLineNumber !== null"
         (click)="togglePlayback()"
         aria-label="Toggle playback">
         @if (isSpeaking && !isPaused) {
@@ -96,26 +94,6 @@
           </svg>
         }
       </button>
-
-      <!-- Disabled tooltip -->
-      @if (!isSpeechSupported || activeLineNumber === null) {
-        <div
-          class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[180px] opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
-          <div class="relative flex flex-col items-center">
-            <div
-              class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold tracking-wide whitespace-nowrap [background:color-mix(in_srgb,var(--color-surface2)_95%,#0d151f_5%)] [border:1px_solid_color-mix(in_srgb,var(--color-border)_80%,var(--color-accent)_20%)] [color:var(--color-text-dim)] [box-shadow:0_4px_12px_rgba(0,0,0,0.4)]">
-              @if (!isSpeechSupported) {
-                <span>Not supported in this browser</span>
-              } @else {
-                <span>Select a line to enable playback</span>
-              }
-            </div>
-            <!-- Arrow -->
-            <div
-              class="w-0 h-0 [border-left:5px_solid_transparent] [border-right:5px_solid_transparent] [border-top:5px_solid_color-mix(in_srgb,var(--color-border)_80%,var(--color-accent)_20%)]"></div>
-          </div>
-        </div>
-      }
     </div>
   </div>
 </div>

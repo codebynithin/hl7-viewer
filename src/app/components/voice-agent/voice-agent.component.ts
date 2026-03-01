@@ -8,6 +8,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { Hl7ParserService } from '../../services/hl7-parser.service';
+import { TooltipDirective } from '../tooltip/tooltip.directive';
 import {
   VoiceRecognitionConstructor,
   VoiceRecognitionEventLike,
@@ -16,7 +17,7 @@ import {
 
 @Component({
   selector: 'app-voice-agent',
-  imports: [CommonModule],
+  imports: [CommonModule, TooltipDirective],
   templateUrl: './voice-agent.component.html',
   styleUrl: './voice-agent.component.scss',
 })

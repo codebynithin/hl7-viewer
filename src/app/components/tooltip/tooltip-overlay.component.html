@@ -1,0 +1,15 @@
+@if (state?.visible) {
+  <div
+    class="fixed pointer-events-none rounded-md px-[10px] py-[6px] text-[11px] font-medium leading-[1.5] tracking-[0.01em] whitespace-pre-wrap [word-break:break-word] [background:color-mix(in_srgb,var(--color-surface2,#1a2234)_96%,#0d151f_4%)] [border:1px_solid_color-mix(in_srgb,var(--color-border,#2a3550)_80%,var(--color-accent,#1eb8e0)_20%)] [color:var(--color-text,#c9d6e8)] [box-shadow:0_4px_16px_rgba(0,0,0,0.45),0_1px_4px_rgba(0,0,0,0.25),0_0_0_1px_rgba(30,184,224,0.06)] [animation:tooltip-in_0.12s_ease-out_both] [transform-origin:var(--tooltip-origin,center_bottom)]"
+    [class]="state!.extraClass"
+    [attr.data-pos]="state!.resolvedPosition"
+    [style.left.px]="state!.x"
+    [style.top.px]="state!.y"
+    [style.max-width.px]="state!.maxWidth"
+    role="tooltip">
+    <div>{{ state!.content }}</div>
+    @if (state!.showArrow) {
+      <div class="hl7-tooltip-overlay__arrow"></div>
+    }
+  </div>
+}

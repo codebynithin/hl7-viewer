@@ -1,0 +1,191 @@
+/* ── Host: fullscreen fixed overlay, invisible to pointer events ── */
+:host {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/*
+ * Everything below CANNOT be expressed with Tailwind:
+ *   - The arrow uses `background: inherit` and `border: inherit` to
+ *     automatically match the tooltip box. Tailwind has no `inherit` utility.
+ *   - Arrow positioning uses CSS attribute selectors ([data-pos^='top'] …)
+ *     which cannot be written as utility classes on the child element.
+ *   - Variant overrides target a class set by the consumer (tooltip--error
+ *     etc.) and modify `border-color` using complex color-mix values.
+ *   - @keyframes must live in CSS.
+ */
+
+/* ── Arrow ──────────────────────────────────────────────────────── */
+.hl7-tooltip-overlay__arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  border: inherit;
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+/* top / top-start / top-end — arrow points downward */
+[data-pos^='top'] .hl7-tooltip-overlay__arrow,
+[data-pos='top'] .hl7-tooltip-overlay__arrow {
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  border-top: none;
+  border-left: none;
+}
+
+[data-pos='top-start'] .hl7-tooltip-overlay__arrow {
+  bottom: -5px;
+  left: 12px;
+  transform: rotate(45deg);
+  border-top: none;
+  border-left: none;
+}
+
+[data-pos='top-end'] .hl7-tooltip-overlay__arrow {
+  bottom: -5px;
+  right: 12px;
+  transform: rotate(45deg);
+  border-top: none;
+  border-left: none;
+}
+
+/* bottom / bottom-start / bottom-end — arrow points upward */
+[data-pos^='bottom'] .hl7-tooltip-overlay__arrow,
+[data-pos='bottom'] .hl7-tooltip-overlay__arrow {
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  border-bottom: none;
+  border-right: none;
+}
+
+[data-pos='bottom-start'] .hl7-tooltip-overlay__arrow {
+  top: -5px;
+  left: 12px;
+  transform: rotate(45deg);
+  border-bottom: none;
+  border-right: none;
+}
+
+[data-pos='bottom-end'] .hl7-tooltip-overlay__arrow {
+  top: -5px;
+  right: 12px;
+  transform: rotate(45deg);
+  border-bottom: none;
+  border-right: none;
+}
+
+/* left / left-start / left-end — arrow points rightward */
+[data-pos^='left'] .hl7-tooltip-overlay__arrow,
+[data-pos='left'] .hl7-tooltip-overlay__arrow {
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  border-left: none;
+  border-bottom: none;
+}
+
+[data-pos='left-start'] .hl7-tooltip-overlay__arrow {
+  right: -5px;
+  top: 12px;
+  transform: rotate(45deg);
+  border-left: none;
+  border-bottom: none;
+}
+
+[data-pos='left-end'] .hl7-tooltip-overlay__arrow {
+  right: -5px;
+  bottom: 12px;
+  transform: rotate(45deg);
+  border-left: none;
+  border-bottom: none;
+}
+
+/* right / right-start / right-end — arrow points leftward */
+[data-pos^='right'] .hl7-tooltip-overlay__arrow,
+[data-pos='right'] .hl7-tooltip-overlay__arrow {
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  border-right: none;
+  border-top: none;
+}
+
+[data-pos='right-start'] .hl7-tooltip-overlay__arrow {
+  left: -5px;
+  top: 12px;
+  transform: rotate(45deg);
+  border-right: none;
+  border-top: none;
+}
+
+[data-pos='right-end'] .hl7-tooltip-overlay__arrow {
+  left: -5px;
+  bottom: 12px;
+  transform: rotate(45deg);
+  border-right: none;
+  border-top: none;
+}
+
+/* Cursor mode — tooltip follows mouse, no arrow needed */
+[data-pos='cursor'] .hl7-tooltip-overlay__arrow {
+  display: none;
+}
+
+/* ── Semantic colour variants ─────────────────────────────────────
+   Applied via TooltipConfig.extraClass e.g. 'tooltip--error'.
+   color-mix values can't be expressed as Tailwind arbitrary values
+   because they contain commas (Tailwind uses commas as separators). */
+.tooltip--error {
+  border-color: color-mix(
+    in srgb,
+    var(--color-border, #2a3550) 40%,
+    #ef4444 60%
+  );
+  color: #fca5a5;
+}
+
+.tooltip--success {
+  border-color: color-mix(
+    in srgb,
+    var(--color-border, #2a3550) 40%,
+    #22c55e 60%
+  );
+  color: #86efac;
+}
+
+.tooltip--warning {
+  border-color: color-mix(
+    in srgb,
+    var(--color-border, #2a3550) 40%,
+    #f59e0b 60%
+  );
+  color: #fcd34d;
+}
+
+.tooltip--info {
+  border-color: color-mix(
+    in srgb,
+    var(--color-border, #2a3550) 40%,
+    var(--color-accent, #1eb8e0) 60%
+  );
+  color: var(--color-accent, #1eb8e0);
+}
+
+/* ── Entrance animation ──────────────────────────────────────────── */
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    scale: 0.92;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
